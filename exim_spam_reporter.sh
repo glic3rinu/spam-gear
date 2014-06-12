@@ -3,8 +3,8 @@
 #   bash exim_spam_reporter.sh [--emergency-email [<EMERGENCY_THRESHOLD>]]
 
 
-. ./utils.sh
-. ./config.sh
+. $(dirname "$0")/utils.sh
+. $(dirname "$0")/config.sh
 
 
 log=$(grep '<=' /var/log/exim4/mainlog | awk 'BEGIN {
