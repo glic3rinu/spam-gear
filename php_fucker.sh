@@ -43,5 +43,5 @@ shit_found53=$(
 
 # TODO PHP >= 5.5 (timestamp IS available)
 
-echo -e "${shit_found}\n${shit_found53}" | $(dirname "$0")/fuck_them_all.sh
+echo -e "${shit_found}\n${shit_found53}" | bash $(dirname "$0")/fuck_them_all.sh
 
