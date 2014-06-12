@@ -32,3 +32,4 @@ function send_emergency_mail () {
 		
 		EOF
     )"
+}
