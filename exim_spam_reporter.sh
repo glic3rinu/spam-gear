@@ -1,4 +1,5 @@
 #!/bin/bash
+
 # USAGE:
 #   bash exim_spam_reporter.sh [--emergency-email [<EMERGENCY_THRESHOLD>]]
 
