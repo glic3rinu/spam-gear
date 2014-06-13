@@ -6,7 +6,7 @@
 THRESHOLD=$(( ${1:-$EMERGENCY_TRESHOLD}*2 ))
 
 STDIN=$(cat -)
-echo "$STDIN"
+echo -n "$STDIN"
 
 MAILQ=$(mailq | wc -l)
 
