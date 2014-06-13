@@ -10,9 +10,11 @@ more than `MAX_CONNECTIONS` per time `PERIOD`.
 Tipical mail server setup.
 
 USAGE
+
     postfix-spam-scan [PERIOD] [MAX_CONNECTIONS]
 
 EXAMPLES
+
     postfix-spam-scan 1hour
     postfix-spam-scan 1hour 90
     0 * * * * postfix-spam-scan 1hour 90 | emergency-mail 3000
@@ -30,9 +32,11 @@ than exceed `MAX_CONNECTIONS` during the last `SECONDS`.
 Tipical web server setup.
 
 USAGE
+
     postfix-spam-scan [SECONDS] [MAX_CONNECTIONS]
 
 EXAMPLES
+
     exim-spam-scan 3600
     exim-spam-scan 3600 60
     0 * * * * exim-spam-scan 3600 60 | emergency-mail 3000
@@ -45,9 +49,11 @@ moving them on the `QUARANTINE_DIR`.
 
 
 USAGE
+
     php-shell-scan [QUARANTINE_DIR]
 
 EXAMPLES
+
     find /home/ -iname "*php" | php-shell-scan
     30 5 * * * find /home/ -mtime -2 -iname "*php" | php-shell-scan
 
@@ -65,9 +71,11 @@ Usually you want to run this script combined with `php-shell-scan` and `php-spam
 
 
 USAGE
+
     php-spam [MAX_DAILY_MAILS]
 
 EXAMPLES
+
     php-spam
     php-spam 100
     */10 * * * * { php-spam 500 && php-spam-legacy; } | php-shell-scan
@@ -110,9 +118,11 @@ Usually you want to run this script combined with `php-shell-scan` and `php-spam
 
 
 USAGE
+
     php-spam-legacy [MINUTES] [MAX_MAILS]
 
 EXAMPLES
+
     php-spam-legacy
     php-spam-legacy 10 30
     */10 * * * * { php-spam-legacy 10 10 && php-spam 500; } | php-shell-scan
