@@ -9,16 +9,17 @@ more than `MAX_CONNECTIONS` per time `PERIOD`.
 
 Tipical mail server setup.
 
-*USAGE*
-
+* *Usage*
+   ```bash
     postfix-spam-scan [PERIOD] [MAX_CONNECTIONS]
+    ```
 
-*EXAMPLES*
-
+* *Examples*
+    ```bash
     postfix-spam-scan 1hour
     postfix-spam-scan 1hour 90
     0 * * * * postfix-spam-scan 1hour 90 | emergency-mail 3000
-
+    ```
 
 *TODO: full support for botnet detector based on number of different networks, unkowns and IP addresses.*
 
@@ -34,7 +35,6 @@ Tipical web server setup.
 *USAGE*
 
     postfix-spam-scan [SECONDS] [MAX_CONNECTIONS]
-
 *EXAMPLES*
 
     exim-spam-scan 3600
