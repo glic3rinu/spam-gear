@@ -4,8 +4,8 @@ Spam-gear
 Some anti-spam artillery
 
 
-postfix-spam-scan
------------------
+[postfix-spam-scan](postfix-spam-scan)
+--------------------------------------
 
 Scans the postfix logs `/var/log/mail.log` looking for sasl authenticated users that make
 more than `MAX_CONNECTIONS` per time `PERIOD`.
@@ -25,8 +25,8 @@ Tipical mail server setup.
 *TODO: full support for botnet detector based on number of different networks, unkowns and IP addresses.*
 
 
-exim-spam-scan
---------------
+[exim-spam-scan](exim-spam-scan)
+--------------------------------
 
 Scans the postfix logs `/var/log/exim/mainlog` looking for local users and smtp connections
 than exceed `MAX_CONNECTIONS` during the last `SECONDS`.
@@ -44,8 +44,8 @@ Tipical web server setup.
     0 * * * * exim-spam-scan 3600 60 | emergency-mail 3000
 
 
-php-shell-scan
---------------
+[php-shell-scan](php-shell-scan)
+--------------------------------
 Scans a list of files looking for common PHP Shell patterns. It disables the found scripts
 moving them on the `QUARANTINE_DIR`.
 
@@ -60,8 +60,8 @@ moving them on the `QUARANTINE_DIR`.
     30 5 * * * find /home/ -mtime -2 -iname "*php" | php-shell-scan
 
 
-php-spam
---------
+[php-spam](php-spam)
+--------------------
 
 With PHP >= 5.3 there is this feature that you can enable to log emails sent with PHP. It can be enabled
 by setting `mail.log = /var/log/phpmail.log` on the `php.ini`.
@@ -83,8 +83,8 @@ Usually you want to run this script combined with `php-shell-scan` and `php-spam
 
 
 
-php-spam-legacy
----------------
+[php-spam-legacy](php-spam-legacy)
+----------------------------------
 
 PHP <= 5.2 has no built-in support for logging scripts that send mail. However, mails sent through php scripts can still be logged by creating a wrapper around sendmail command.
 
@@ -130,8 +130,8 @@ Usually you want to run this script combined with `php-shell-scan` and `php-spam
     */10 * * * * { php-spam-legacy 10 10 && php-spam 500; } | php-shell-scan
 
 
-emergency-mail
---------------
+[emergency-mail](emergency-mail)
+--------------------------------
 
 Some times during spam attacks your local mail server queue is badly saturated with tons of spam, potentially creatign delays on theses alerting messages.
 
