@@ -26,8 +26,8 @@ more than `MAX_CONNECTIONS` per time `PERIOD`. Covering the typical attacks on a
 [exim-spam-scan](exim-spam-scan)
 --------------------------------
 
-Scans Exim4 logs under `/var/log/exim/mainlog` looking for local users and SMTP connections
-than exceed `MAX_CONNECTIONS` during the last `SECONDS`. Covering the typical attacks on a shared hositing web server setup.
+Scans Exim4 logs under `/var/log/exim/mainlog` looking for *local users* and *SMTP connections*
+that exceed `MAX_CONNECTIONS` during the last `SECONDS`. Covering the typical attacks on a shared hositing web server setup.
 
 *Usage*
 
