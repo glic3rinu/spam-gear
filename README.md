@@ -1,7 +1,7 @@
 Spam-gear
 =========
 
-Some anti-spam artillery
+Some anti-spam artillery for your multi-user web and mail servers.
 
 
 [postfix-spam-scan](postfix-spam-scan)
