@@ -13,9 +13,11 @@ more than `MAX_CONNECTIONS` per time `PERIOD`.
 Tipical mail server setup.
 
 *Usage*
+
     postfix-spam-scan [PERIOD] [MAX_CONNECTIONS]
 
 *Examples*
+
     postfix-spam-scan 1hour
     postfix-spam-scan 1hour 90
     0 * * * * postfix-spam-scan 1hour 90 | emergency-mail 3000
@@ -34,6 +36,7 @@ Tipical web server setup.
 *Usage*
 
     postfix-spam-scan [SECONDS] [MAX_CONNECTIONS]
+
 *Examples*
 
     exim-spam-scan 3600
