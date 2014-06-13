@@ -7,7 +7,7 @@ Some anti-spam artillery
 [postfix-spam-scan](postfix-spam-scan)
 --------------------------------------
 
-Scans the postfix logs `/var/log/mail.log` looking for sasl authenticated users that make
+Scans the postfix logs `/var/log/mail.log` looking for SASL authenticated users that make
 more than `MAX_CONNECTIONS` per time `PERIOD`.
 
 Tipical mail server setup.
