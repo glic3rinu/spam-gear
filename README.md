@@ -82,7 +82,7 @@ Usually you want to run this script combined with `php-shell-scan` and `php-spam
 [php-spam-legacy](php-spam-legacy)
 ----------------------------------
 
-PHP &lt; 5.3 has no built-in support for logging PHP scripts that send email. However, this can be done by creating a wrapper around sendmail command.
+PHP prioor to 5.3 has no built-in support for logging PHP scripts that send email. However, this can be done by creating a wrapper around sendmail command.
 
 First create a `/usr/local/bin/phpsendmail` file with the following content
 ```bash
