@@ -129,9 +129,9 @@ Usually you want to run this script combined with `php-shell-scan` and `php-spam
 [emergency-mail](emergency-mail)
 --------------------------------
 
-Some times during spam attacks your local mail server queue is badly saturated with tons of spam, potentially creatign delays on theses alerting messages.
+Some times during spam attacks your local mail server queue is badly saturated with tons of spam, potentially creatign large delays on mail delivery, including alerts sent via spam-gear scripts :).
 
-This script opens an SMTP connection to a remote server and send the report through it. But, it only does so when a certain number of messages on the MAILQ is reached.
+To avoid this problem this script opens an SMTP connection to a remote server and send the report through it. But, it only does so when a certain number of messages on the MAILQ is reached.
 
 In order to use this script you should copy [`emergency-settings.example`](emergency-settings.example) to `emergency-settings` and edit them according to your needs.
 
