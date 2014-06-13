@@ -1,7 +1,9 @@
 # Spam-gear
 
+Some anti-spam artillery for your multi-user web and mail servers. UNIX design philosophy combining small tools that do one thing, and do it well.
 
-Some anti-spam artillery for your multi-user web and mail servers.
+These scripts don't have dependencies other than standard unix commands, Bash and Python. With the only exception of php-shell-scan, that uses clamscan.
+
 
 ### Installation
 ```bash
@@ -50,7 +52,7 @@ that exceed `MAX_CONNECTIONS` during the last `SECONDS`. Covering the typical at
 ## [php-shell-scan](php-shell-scan)
 
 Scans a list of files looking for common PHP Shell patterns. Disables the infected scripts
-moving them on the `QUARANTINE_DIR`.
+moving them on the `QUARANTINE_DIR`. **Requires clamscan.**
 
 
 *Usage*
