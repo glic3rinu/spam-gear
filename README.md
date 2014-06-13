@@ -58,14 +58,13 @@ moving them on the `QUARANTINE_DIR`.
 
 [php-spam](php-spam)
 --------------------
-
 With PHP &ge; 5.3 there is this feature that you can enable for logging emails sent via PHP. This can be done 
 by setting `mail.log = /var/log/phpmail.log` on `php.ini`.
 
-php-spam inspects `/var/log/phpmail.log` and returns scripts that exceed `MAX_DAILY_MAILS`.
+
+This script inspects `/var/log/phpmail.log` and returns the PHP scripts that exceed `MAX_DAILY_MAILS`.
 
 Usually you want to run this script combined with `php-shell-scan` and `php-spam-legacy`.
-
 
 *Usage*
 
@@ -81,36 +80,7 @@ Usually you want to run this script combined with `php-shell-scan` and `php-spam
 
 [php-spam-legacy](php-spam-legacy)
 ----------------------------------
-
-PHP prior to 5.3 has no built-in support for logging PHP scripts that send email. However, this can be done by creating a wrapper around sendmail command.
-
-First create a `/usr/local/bin/phpsendmail` file with the following content
-```bash
-#!/bin/bash
-logger -p mail.info "sendmail-php site=${HTTP_HOST}, client=${REMOTE_ADDR}, filename=${SCRIPT_FILENAME}, pwd=${PWD}, uid=${UID}, user=$(whoami), args=$*"
-/usr/lib/sendmail -t -i $*
-```
-
-Then PHP will have to set all these environment variables before this script gets called. Create a `/home/httpd/htdocs/put_environment_variables.php` for that.
-
-```php
-<?php
-    ob_start();
-    putenv("SCRIPT_FILENAME=" . $_SERVER['SCRIPT_FILENAME']);
-    putenv("HTTP_HOST=" . $_SERVER['HTTP_HOST']);
-    putenv("REMOTE_ADDR=" . $_SERVER['REMOTE_ADDR']);
-?>
-```
-
-Finally configure the `php.ini` to use those files:
-
-```php
-sendmail_path = /usr/local/bin/phpsendmail
-auto_prepend_file = /home/httpd/htdocs/put_environment_variables.php
-```
-
-
-`php-spam-legacy` inspects `/var/log/mail.log` and returns scripts that exceed `MAX_MAILS` over the last number of `MINUTES`.
+This script is for legay versions of PHP (&lt; 5.3), it inspects `/var/log/mail.log` and returns PHP scripts that exceed `MAX_MAILS` over the last number of `MINUTES`.
 
 Usually you want to run this script combined with `php-shell-scan` and `php-spam`.
 
@@ -124,6 +94,38 @@ Usually you want to run this script combined with `php-shell-scan` and `php-spam
     php-spam-legacy
     php-spam-legacy 10 30
     */10 * * * * { php-spam-legacy 10 10 && php-spam 500; } | php-shell-scan
+
+
+PHP prior to 5.3 has no built-in support for logging PHP scripts that send email. However, this can be done by creating a wrapper around sendmail command.
+
+First create a `/usr/local/bin/phpsendmail` file with the following content
+```bash
+#!/bin/bash
+logger -p mail.info "sendmail-php site=${HTTP_HOST}, client=${REMOTE_ADDR}, filename=${SCRIPT_FILENAME}, pwd=${PWD}, uid=${UID}, user=$(whoami), args=$*"
+/usr/lib/sendmail -t -i $*
+```
+
+PHP will have to set the needed environment variables before the sendmail wrapper gets called. Create a `/home/httpd/htdocs/put_environment_variables.php` for that.
+
+```php
+<?php
+    ob_start();
+    putenv("SCRIPT_FILENAME=" . $_SERVER['SCRIPT_FILENAME']);
+    putenv("HTTP_HOST=" . $_SERVER['HTTP_HOST']);
+    putenv("REMOTE_ADDR=" . $_SERVER['REMOTE_ADDR']);
+?>
+```
+
+Finally, tell PHP to use those scripts by configuring `php.ini`.
+
+```php
+sendmail_path = /usr/local/bin/phpsendmail
+auto_prepend_file = /home/httpd/htdocs/put_environment_variables.php
+```
+
+
+
+
 
 
 [emergency-mail](emergency-mail)
