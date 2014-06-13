@@ -18,6 +18,7 @@ more than `MAX_CONNECTIONS` per time `PERIOD`. Covering the typical attacks on a
 
     postfix-spam-scan 1hour
     postfix-spam-scan 1hour 90
+    0 * * * * postfix-spam-scan 1hour 90
     0 * * * * postfix-spam-scan 1hour 90 | emergency-mail 3000
 
 *TODO: full support for botnet detector based on number of different networks, unkowns and IP addresses.*
@@ -37,6 +38,7 @@ that exceed `MAX_CONNECTIONS` during the last `SECONDS`. Covering the typical at
 
     exim-spam-scan 3600
     exim-spam-scan 3600 60
+    0 * * * * exim-spam-scan 3600 60
     0 * * * * exim-spam-scan 3600 60 | emergency-mail 3000
 
 
