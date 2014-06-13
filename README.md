@@ -3,6 +3,11 @@ Spam-gear
 
 Some anti-spam artillery for your multi-user web and mail servers.
 
+*Installation*
+```bash
+cd /root
+git clone https://github.com/glic3rinu/spam-gear.git
+```
 
 [postfix-spam-scan](postfix-spam-scan)
 --------------------------------------
