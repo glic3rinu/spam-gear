@@ -17,7 +17,7 @@ if [[ "$EMERGENCY_MAIL" != "" && $MAILQ -gt $TRESHOLD ]]; then
 		
 		MAIL_FROM = '$EMERGENCY_MAIL_FROM'
 		SUBJECT = 'EMERGENCY MAIL ABUSE REPORT - $EMERGENCY_SERVER_NAME'
-		MESSAGE = $STDIN
+		MESSAGE = '$STDIN'
 		
 		for SMTP_SERVER, MAIL_TO in $EMERGENCY_MAIL_TO:
 		    msg = MIMEText(MESSAGE)
@@ -39,3 +39,5 @@ if [[ "$EMERGENCY_MAIL" != "" && $MAILQ -gt $TRESHOLD ]]; then
 		EOF
     )"
 fi
+
+echo "$STDIN"
