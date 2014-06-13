@@ -155,6 +155,7 @@ This is how our crontab looks like
 
 ```bash
 # Web server crontab
+
 PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/root/spam-gear
 0 * * * * exim-spam-scan 3600 60 | emergency-mail 2000
 30 5 * * * find /home/pangea/ -mtime -2 -iname "*php" | php-shell-scan
@@ -162,7 +163,9 @@ PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/root/spam-gea
 ```
 
 ```bash
+
 # Mail server crontab
+
 PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/root/spam-gear
 0 * * * * postfix-spam-scan 1hour 90 | emergency-mail 3000
 ```
