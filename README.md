@@ -161,9 +161,9 @@ In order to use this script you should copy [`emergency-settings.example`](emerg
     postfix-spam-scan 1hour 90 | emergency-mail 3000
 
 
-## Extra
+## Crontab examples
 
-This is how our crontab looks like
+This is how our crontabs look like
 
 ```bash
 # Web server crontab
