@@ -9,7 +9,7 @@ cd /root
 git clone https://github.com/glic3rinu/spam-gear.git
 ```
 
-### [postfix-spam-scan](postfix-spam-scan)
+## [postfix-spam-scan](postfix-spam-scan)
 
 
 Scans Postfix logs `/var/log/mail.log` looking for SASL authenticated users that make
@@ -47,8 +47,8 @@ that exceed `MAX_CONNECTIONS` during the last `SECONDS`. Covering the typical at
     0 * * * * exim-spam-scan 3600 60 | emergency-mail 3000
 
 
-[php-shell-scan](php-shell-scan)
---------------------------------
+## [php-shell-scan](php-shell-scan)
+
 Scans a list of files looking for common PHP Shell patterns. Disables the infected scripts
 moving them on the `QUARANTINE_DIR`.
 
@@ -63,8 +63,8 @@ moving them on the `QUARANTINE_DIR`.
     30 5 * * * find /home/ -mtime -2 -iname "*php" | php-shell-scan
 
 
-[php-spam](php-spam)
---------------------
+## [php-spam](php-spam)
+
 With PHP &ge; 5.3 there is this feature that you can enable for logging emails sent via PHP. This can be done 
 by setting `mail.log = /var/log/phpmail.log` on `php.ini`.
 
@@ -85,8 +85,8 @@ Usually you want to run this script combined with `php-shell-scan` and `php-spam
 
 
 
-[php-spam-legacy](php-spam-legacy)
-----------------------------------
+## [php-spam-legacy](php-spam-legacy)
+
 This script is for legacy versions of PHP (&lt; 5.3), it inspects `/var/log/mail.log` and returns PHP scripts that exceed `MAX_MAILS` over the last number of `MINUTES`.
 
 Usually you want to run this script combined with `php-shell-scan` and `php-spam`.
@@ -132,8 +132,8 @@ auto_prepend_file = /home/httpd/htdocs/put_environment_variables.php
 
 
 
-[emergency-mail](emergency-mail)
---------------------------------
+## [emergency-mail](emergency-mail)
+
 
 Sometimes during spam attacks your local mail server queue is badly saturated with tons of spam, potentially creating large delays on mail delivery, including alerts sent by the awesome spam-gear scripts :).
 
@@ -154,8 +154,8 @@ This script is particularly useful combined with `postfix-spam-scan` or `exim-sp
     0 * * * * postfix-spam-scan 1hour 90 | emergency-mail 3000
 
 
-Extra
------
+## Extra
+
 This is how our crontab looks like
 
 ```bash
