@@ -3,13 +3,14 @@
 . $(dirname "$0")/emergency-settings
 
 
-THRESHOLD=${1:-$EMERGENCY_TRESHOLD}
+THRESHOLD=$(( ${1:-$EMERGENCY_TRESHOLD}*2 ))
 
+STDIN=$(cat -)
+echo "$STDIN"
 
-MAILQ=$(mailq | tail -n1| awk {'print $5'})
+MAILQ=$(mailq | wc -l)
 
 if [[ "$EMERGENCY_MAIL" != "" && $MAILQ -gt $TRESHOLD ]]; then
-    STDIN=$(cat -)
     python -c "$(cat <<- EOF
 		import smtplib
 		import email.utils
@@ -39,5 +40,3 @@ if [[ "$EMERGENCY_MAIL" != "" && $MAILQ -gt $TRESHOLD ]]; then
 		EOF
     )"
 fi
-
-echo "$STDIN"
