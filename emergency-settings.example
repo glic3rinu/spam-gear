@@ -1,0 +1,10 @@
+#!/bin/bash
+
+EMERGENCY_SERVER_NAME="$(hostname).yourdomain.org"
+EMERGENCY_TRESHOLD=3000
+EMERGENCY_MAIL_FROM="root@yourdomain.org"
+EMERGENCY_MAIL_TO="(
+    ('external-smpt-server.org', ('addr1@external1.org', 'addr2@external1.org')),
+    ('ext-smpt-server2.org', ('address@ext2.org',)),
+)"
+

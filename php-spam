@@ -1,0 +1,13 @@
+#!/bin/bash
+
+# PHP >= 5.3 (timestamp NOT available)
+
+
+MAX_DAILY_MAILS=${1:-500}
+
+while read line; do
+    current=($(echo "$line"))
+    if [[ ${current[0]} != "" && ${current[0]} -ge $MAX_DAILY_MAILS ]]; then
+        echo "${current[1]}"
+    fi;
+done < <(grep ^mail /var/log/phpmail.log | cut -d':' -f1|cut -d'[' -f2 | sort | uniq -c)

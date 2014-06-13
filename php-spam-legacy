@@ -1,0 +1,19 @@
+#!/bin/bash
+
+# PHP < 5.3 (No built-in mail logging support)
+
+
+MINUTES=$(echo "${1:-10}*1.2" | bc | sed "s/\..*//")
+MAX_MAILS=${2:-10}
+
+while read line; do
+    current=($(echo "$line"))
+    if [[ ${current[0]} != "" && ${current[0]} -ge $MAX_MAILS ]]; then
+        echo "${current[1]}"
+    fi;
+done < <(
+    grep "sendmail-php" /var/log/mail.log | awk '$0>=from&&$0<=to' \
+    from="$(date +%b" "%d" "%H:%M:%S -d -${MINUTES}minute | sed 's/ 0\([0-9]\) /  \1 /')" \
+    to="$(date +%b" "%d" "%H:%M:%S | sed 's/ 0\([0-9]\) /  \1 /')" \
+    | awk {'print $9'} | sed -s "s/.*=\(.*\),/\1/" | grep -v '^$' | sort | uniq -c
+)

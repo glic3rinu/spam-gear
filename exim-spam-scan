@@ -1,0 +1,53 @@
+#!/bin/bash
+
+# USAGE:
+#   exim-spam-scan SECONDS MAX_CONNECTIONS
+
+
+SECONDS=${1:-3600}
+MAX_CONNECTIONS=${2:-60}
+
+
+log=$(grep '<=' /var/log/exim4/mainlog | awk -v SECONDS=$SECONDS '
+    BEGIN {
+        now = systime()
+        current = strftime("%y:%m:%d:%H:%m:%S", now)
+        print "Current date/time is: " current
+        onehr = SECONDS
+    } {
+        column1 = $1
+        column2 = $2
+        split(column1, d, "-")
+        split(column2, t, ":")
+        logtime = sprintf("%s %s %s %s %s %s", d[1], d[2], d[3], t[1], t[2], t[3])
+        log_entry_time = mktime(logtime)
+        if ( now - log_entry_time <= onehr ){
+            print $0
+        }
+    }'
+)
+
+period="$SECONDS seconds"
+message="During the last $period the following senders have made at least $MAX_CONNECTIONS SMTP connections."
+sent=false
+
+# USER based
+while read line; do
+    current=($(echo "$line"))
+    if [[ ${current[0]} != "" && ${current[0]} -gt $MAX_CONNECTIONS ]]; then
+        logentry=$(echo "$log" | grep "U=${current[1]} "|head -n1)
+        [ $sent = false ] && echo "$message" && sent=true
+        echo "${spammers}\n${current[0]} -- ${logentry}"
+    fi;
+done < <(echo "$log" | grep 'U=' | awk -F'U=' {'print $2'} | awk {'print $1'} | sort | uniq -c)
+
+
+# HOST based
+while read line; do
+    current=($(echo "$line"))
+    if [[ ${current[0]} != "" && ${current[0]} -gt $MAX_CONNECTIONS ]]; then
+        logentry=$(echo "$log" | grep "\(${current[1]}\)" | head -n1)
+        [ $sent = false ] && echo "$message" && sent=true
+        echo "{$spammers}\n${current[0]} -- ${logentry}"
+    fi;
+done < <(echo "$log" | grep -v 'U=' | awk -F'(' {'print $2'} | cut -d')' -f1 | sort | uniq -c)

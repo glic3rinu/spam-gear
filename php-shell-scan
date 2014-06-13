@@ -1,11 +1,10 @@
 #!/bin/bash
 
 # USAGE:
-#   find /home/pangea/ -mtime -2 -iname "*php" | bash fuck_them_all.sh
+#   find /home/ -mtime -2 -iname "*php" | php-shell-scan [QUARANTINE_DIR]
 
 
-. $(dirname "$0")/config.sh
-
+QUARANTINE_DIR=${1:-"/root/shells/"}
 
 [[ ! -e "$QUARANTINE_DIR" ]] && mkdir "$QUARANTINE_DIR"
 
