@@ -46,7 +46,7 @@ Scans a list of files looking for common PHP Shell patterns. Disables the infect
 moving them on the `QUARANTINE_DIR`.
 
 
-*usage*
+*Usage*
 
     php-shell-scan [QUARANTINE_DIR]
 
