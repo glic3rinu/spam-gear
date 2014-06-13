@@ -31,7 +31,7 @@ period="$SECONDS seconds"
 message="During the last $period the following senders have made at least $MAX_CONNECTIONS SMTP connections."
 sent=false
 
-# USER based
+# USER based P=local
 while read line; do
     current=($(echo "$line"))
     if [[ ${current[0]} != "" && ${current[0]} -gt $MAX_CONNECTIONS ]]; then
@@ -42,7 +42,7 @@ while read line; do
 done < <(echo "$log" | grep 'U=' | awk -F'U=' {'print $2'} | awk {'print $1'} | sort | uniq -c)
 
 
-# HOST based
+# HOST based P=smtp
 while read line; do
     current=($(echo "$line"))
     if [[ ${current[0]} != "" && ${current[0]} -gt $MAX_CONNECTIONS ]]; then
