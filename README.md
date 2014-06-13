@@ -137,7 +137,7 @@ Some times during spam attacks your local mail server queue is badly saturated w
 
 This script opens an SMTP connection to a remote server and send the report through it. But, it only does so when a certain number of messages on the MAILQ is reached.
 
-In order to use this script you should copy `emergency-settings.example` to `emergency-settings` and edit them according to your needs.
+In order to use this script you should copy [`emergency-settings.example`](emergency-settings.example) to `emergency-settings` and edit them according to your needs.
 
 This script is particularly useful combined with `postfix-spam-scan` or `exim-spam-scan`.
 
@@ -150,4 +150,6 @@ PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/root/spam-gea
 0 * * * * exim-spam-scan 3600 60 | emergency-mail 2000
 30 5 * * * find /home/pangea/ -mtime -2 -iname "*php" | php-shell-scan
 */10 * * * * { php-spam-legacy 10 10 && php-spam 500; } | php-shell-scan
+
+0 * * * * postfix-spam-scan 1hour 90 | emergency-mail 3000
 ```
