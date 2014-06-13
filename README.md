@@ -55,12 +55,12 @@ that exceed `MAX_CONNECTIONS` during the last `SECONDS`. Covering the typical at
 
 ## [php-shell-scan](php-shell-scan)
 
-Reads a list of files from STDIN and look for common PHP Shell patterns, combining custom regex expressions and clamscan. Automatically disables the infected scripts moving them on the `QUARANTINE_DIR`.
+Reads file names from stdin and looks for common PHP Shell patterns, combining custom regex expressions and clamscan analyisis. It automatically disables the infected scripts moving them on a `QUARANTINE_DIR`.
 
 
 *Usage*
 
-    php-shell-scan [QUARANTINE_DIR]
+    find . | php-shell-scan [QUARANTINE_DIR]
 
 *Examples*
 
