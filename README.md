@@ -157,8 +157,8 @@ This is how our crontab looks like
 # Web server crontab
 
 PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/root/spam-gear
-0 * * * * exim-spam-scan 3600 60 | emergency-mail 2000
-30 5 * * * find /home/pangea/ -mtime -2 -iname "*php" | php-shell-scan
+0    * * * * exim-spam-scan 3600 60 | emergency-mail 2000
+30   5 * * * find /home/pangea/ -mtime -2 -iname "*php" | php-shell-scan
 */10 * * * * { php-spam-legacy 10 10 && php-spam 500; } | php-shell-scan
 ```
 
