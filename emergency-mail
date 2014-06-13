@@ -10,7 +10,7 @@ echo -n "$STDIN"
 
 MAILQ=$(mailq | wc -l)
 
-if [[ $MAILQ -gt $THRESHOLD ]]; then
+if [[ "$STDIN" != "" && $MAILQ -gt $THRESHOLD ]]; then
     python -c "$(cat <<- EOF
 		import smtplib
 		import email.utils
