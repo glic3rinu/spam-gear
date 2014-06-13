@@ -1,6 +1,6 @@
 # Spam-gear
 
-Some anti-spam artillery for your multi-user web and mail servers.
+Anti-spam artillery for your multi-user web and mail servers.
 
 Spam-gear scripts follow the UNIX design philosophy of combining small tools that do one thing, and do it well.
 
