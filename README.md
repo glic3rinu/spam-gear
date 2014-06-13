@@ -7,7 +7,7 @@ Some anti-spam artillery for your multi-user web and mail servers.
 [postfix-spam-scan](postfix-spam-scan)
 --------------------------------------
 
-Scans the postfix logs `/var/log/mail.log` looking for SASL authenticated users that make
+Scans Postfix logs `/var/log/mail.log` looking for SASL authenticated users that make
 more than `MAX_CONNECTIONS` per time `PERIOD`. Covering the typical attacks on a mail server setup.
 
 *Usage*
@@ -26,7 +26,7 @@ more than `MAX_CONNECTIONS` per time `PERIOD`. Covering the typical attacks on a
 [exim-spam-scan](exim-spam-scan)
 --------------------------------
 
-Scans the postfix logs `/var/log/exim/mainlog` looking for local users and smtp connections
+Scans Exim4 logs under `/var/log/exim/mainlog` looking for local users and SMTP connections
 than exceed `MAX_CONNECTIONS` during the last `SECONDS`. Covering the typical attacks on a shared hositing web server setup.
 
 *Usage*
@@ -42,7 +42,7 @@ than exceed `MAX_CONNECTIONS` during the last `SECONDS`. Covering the typical at
 
 [php-shell-scan](php-shell-scan)
 --------------------------------
-Scans a list of files looking for common PHP Shell patterns. It disables the found scripts
+Scans a list of files looking for common PHP Shell patterns. Disables the infected scripts
 moving them on the `QUARANTINE_DIR`.
 
 
@@ -59,10 +59,10 @@ moving them on the `QUARANTINE_DIR`.
 [php-spam](php-spam)
 --------------------
 
-With PHP >= 5.3 there is this feature that you can enable to log emails sent with PHP. It can be enabled
-by setting `mail.log = /var/log/phpmail.log` on the `php.ini`.
+With PHP >= 5.3 there is this feature that you can enable for logging emails sent via PHP. This can be done 
+by setting `mail.log = /var/log/phpmail.log` on `php.ini`.
 
-This script inspects `/var/log/phpmail.log` and returns scripts that exceed `MAX_DAILY_MAILS`.
+php-spam inspects `/var/log/phpmail.log` and returns scripts that exceed `MAX_DAILY_MAILS`.
 
 Usually you want to run this script combined with `php-shell-scan` and `php-spam-legacy`.
 
@@ -82,7 +82,7 @@ Usually you want to run this script combined with `php-shell-scan` and `php-spam
 [php-spam-legacy](php-spam-legacy)
 ----------------------------------
 
-PHP <= 5.2 has no built-in support for logging scripts that send mail. However, mails sent through php scripts can still be logged by creating a wrapper around sendmail command.
+PHP <= 5.2 has no built-in support for logging PHP scripts that send email. However, this can be done by creating a wrapper around sendmail command.
 
 First create a `/usr/local/bin/phpsendmail` file with the following content
 ```bash
