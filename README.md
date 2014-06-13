@@ -125,19 +125,26 @@ auto_prepend_file = /home/httpd/htdocs/put_environment_variables.php
 
 
 
-
-
-
 [emergency-mail](emergency-mail)
 --------------------------------
 
-Some times during spam attacks your local mail server queue is badly saturated with tons of spam, potentially creatign large delays on mail delivery, including alerts sent via spam-gear scripts :).
+Sometimes during spam attacks your local mail server queue is badly saturated with tons of spam, potentially creating large delays on mail delivery, including alerts sent via spam-gear scripts :).
 
-To avoid this problem this script opens an SMTP connection to a remote server and send the report through it. But, it only does so when a certain number of messages on the MAILQ is reached.
+To avoid this problem this script opens an SMTP connection to a remote server and sends the report through it. But to avoid spamming your personal email account, it only does this when the local queue has more than a given number of messages (`EMERGENCY_THRESHOLD`).
 
 In order to use this script you should copy [`emergency-settings.example`](emergency-settings.example) to `emergency-settings` and edit them according to your needs.
 
 This script is particularly useful combined with `postfix-spam-scan` or `exim-spam-scan`.
+
+
+*Usage*
+
+    emergency-mail [EMERGENCY_THRESHOLD]
+    
+*Examples*
+
+    postfix-spam-scan 1hour 90 | emergency-mail 3000
+    0 * * * * postfix-spam-scan 1hour 90 | emergency-mail 3000
 
 
 Extra
