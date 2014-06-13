@@ -84,6 +84,7 @@ Usually you want to run this script combined with `php-shell-scan` and `php-spam
 
     php-spam
     php-spam 100
+    php-spam 500 && php-spam-legacy 10 10
 
 
 
@@ -102,6 +103,7 @@ Usually you want to run this script combined with `php-shell-scan` and `php-spam
 
     php-spam-legacy
     php-spam-legacy 10 30
+    php-spam-legacy 10 10 && php-spam 500
 
 
 #### System configuration
