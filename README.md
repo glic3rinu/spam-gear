@@ -132,7 +132,7 @@ Sometimes during spam attacks your local mail server queue is badly saturated wi
 
 To avoid reciving delayed spam alerts this script opens an SMTP connection to a remote server and sends the report through it. But to avoid spamming your personal email account, it only does so when the local queue has more than a given number of messages (`EMERGENCY_THRESHOLD`).
 
-In order to use this script you should copy [`emergency-settings.example`](emergency-settings.example) to `emergency-settings` and edit them according to your needs.
+In order to use this script you should copy [`emergency-settings.example`](emergency-settings.example) to `emergency-settings` and configure the emergency servers and addresses.
 
 This script is particularly useful combined with `postfix-spam-scan` or `exim-spam-scan`.
 
