@@ -1,6 +1,6 @@
 # Spam-gear
 
-Some anti-spam artillery for your multi-user web and mail servers. UNIX design philosophy combining small tools that do one thing, and do it well.
+Some anti-spam artillery for your multi-user web and mail servers. They follow the UNIX design philosophy of combining small tools that do one thing, and do it well.
 
 These scripts don't have dependencies other than standard unix commands, Bash and Python. With the only exception of php-shell-scan, that uses clamscan.
 
