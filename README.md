@@ -27,10 +27,9 @@ more than `MAX_CONNECTIONS` per time `PERIOD`. Covering the typical attacks on a
 
 #### Examples
 
+    postfix-spam-scan
     postfix-spam-scan 1hour
     postfix-spam-scan 1hour 90
-    0 * * * * postfix-spam-scan 1hour 90
-    0 * * * * postfix-spam-scan 1hour 90 | emergency-mail 3000
 
 #### TODO
 
@@ -51,8 +50,6 @@ that exceed `MAX_CONNECTIONS` during the last `SECONDS`. Covering the typical at
 
     exim-spam-scan 3600
     exim-spam-scan 3600 60
-    0 * * * * exim-spam-scan 3600 60
-    0 * * * * exim-spam-scan 3600 60 | emergency-mail 3000
 
 
 ## [php-shell-scan](php-shell-scan)
@@ -67,7 +64,6 @@ Reads file names from stdin and looks for common PHP Shell patterns, combining c
 #### Examples
 
     find /home/ -iname "*php" | php-shell-scan
-    30 5 * * * find /home/ -mtime -2 -iname "*php" | php-shell-scan
 
 
 ## [php-spam](php-spam)
@@ -88,7 +84,6 @@ Usually you want to run this script combined with `php-shell-scan` and `php-spam
 
     php-spam
     php-spam 100
-    */10 * * * * { php-spam 500 && php-spam-legacy; } | php-shell-scan
 
 
 
@@ -107,7 +102,6 @@ Usually you want to run this script combined with `php-shell-scan` and `php-spam
 
     php-spam-legacy
     php-spam-legacy 10 30
-    */10 * * * * { php-spam-legacy 10 10 && php-spam 500; } | php-shell-scan
 
 
 #### System configuration
@@ -163,7 +157,6 @@ In order to use this script you should copy [`emergency-settings.example`](emerg
 #### Examples
 
     postfix-spam-scan 1hour 90 | emergency-mail 3000
-    0 * * * * postfix-spam-scan 1hour 90 | emergency-mail 3000
 
 
 ## Extra
