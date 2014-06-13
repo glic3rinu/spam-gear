@@ -21,18 +21,20 @@ git clone https://github.com/glic3rinu/spam-gear.git
 Scans Postfix logs `/var/log/mail.log` looking for SASL authenticated users that make
 more than `MAX_CONNECTIONS` per time `PERIOD`. Covering the typical attacks on a mail server setup.
 
-*Usage*
+#### Usage
 
     postfix-spam-scan [PERIOD] [MAX_CONNECTIONS]
 
-*Examples*
+#### Examples
 
     postfix-spam-scan 1hour
     postfix-spam-scan 1hour 90
     0 * * * * postfix-spam-scan 1hour 90
     0 * * * * postfix-spam-scan 1hour 90 | emergency-mail 3000
 
-*TODO: full support for botnet detector based on number of different networks, unkowns and IP addresses.*
+#### TODO
+
+Full support for botnet detector based on number of different networks, unkowns and IP addresses.*
 
 
 ## [exim-spam-scan](exim-spam-scan)
@@ -41,11 +43,11 @@ more than `MAX_CONNECTIONS` per time `PERIOD`. Covering the typical attacks on a
 Scans Exim4 logs under `/var/log/exim/mainlog` looking for *local users* and *SMTP connections*
 that exceed `MAX_CONNECTIONS` during the last `SECONDS`. Covering the typical attacks on a shared hositing web server setup.
 
-*Usage*
+#### Usage
 
     postfix-spam-scan [SECONDS] [MAX_CONNECTIONS]
 
-*Examples*
+#### Examples
 
     exim-spam-scan 3600
     exim-spam-scan 3600 60
@@ -58,11 +60,11 @@ that exceed `MAX_CONNECTIONS` during the last `SECONDS`. Covering the typical at
 Reads file names from stdin and looks for common PHP Shell patterns, combining custom regex expressions and clamscan analyisis. It automatically disables the infected scripts moving them on a `QUARANTINE_DIR`.
 
 
-*Usage*
+#### Usage
 
     find . | php-shell-scan [QUARANTINE_DIR]
 
-*Examples*
+#### Examples
 
     find /home/ -iname "*php" | php-shell-scan
     30 5 * * * find /home/ -mtime -2 -iname "*php" | php-shell-scan
@@ -78,11 +80,11 @@ This script inspects `/var/log/phpmail.log` and returns the PHP scripts that exc
 
 Usually you want to run this script combined with `php-shell-scan` and `php-spam-legacy`.
 
-*Usage*
+#### Usage
 
     php-spam [MAX_DAILY_MAILS]
 
-*Examples*
+#### Examples
 
     php-spam
     php-spam 100
@@ -97,16 +99,18 @@ This script is for legacy versions of PHP (&lt; 5.3), it inspects `/var/log/mail
 Usually you want to run this script combined with `php-shell-scan` and `php-spam`.
 
 
-*Usage*
+#### Usage
 
     php-spam-legacy [MINUTES] [MAX_MAILS]
 
-*Examples*
+#### Examples
 
     php-spam-legacy
     php-spam-legacy 10 30
     */10 * * * * { php-spam-legacy 10 10 && php-spam 500; } | php-shell-scan
 
+
+#### System configuration
 
 PHP prior to 5.3 has no built-in support for logging PHP scripts that send email. However, this can be done by creating a wrapper around sendmail command.
 
@@ -144,16 +148,19 @@ Sometimes during spam attacks your local mail server queue is badly saturated wi
 
 To avoid reciving delayed spam alerts this script opens an SMTP connection to a remote server and sends the report through it. But to avoid spamming your personal email account, it only does so when the local queue has more than a given number of messages (`EMERGENCY_THRESHOLD`).
 
-In order to use this script you should copy [`emergency-settings.example`](emergency-settings.example) to `emergency-settings` and configure the emergency servers and addresses.
 
 This script is particularly useful combined with `postfix-spam-scan` or `exim-spam-scan`.
 
+#### Installation
 
-*Usage*
+In order to use this script you should copy [`emergency-settings.example`](emergency-settings.example) to `emergency-settings` and configure the emergency servers and addresses.
+
+
+#### Usage
 
     emergency-mail [EMERGENCY_THRESHOLD]
     
-*Examples*
+#### Examples
 
     postfix-spam-scan 1hour 90 | emergency-mail 3000
     0 * * * * postfix-spam-scan 1hour 90 | emergency-mail 3000
