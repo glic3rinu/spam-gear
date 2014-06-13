@@ -80,7 +80,7 @@ Usually you want to run this script combined with `php-shell-scan` and `php-spam
 
 [php-spam-legacy](php-spam-legacy)
 ----------------------------------
-This script is for legay versions of PHP (&lt; 5.3), it inspects `/var/log/mail.log` and returns PHP scripts that exceed `MAX_MAILS` over the last number of `MINUTES`.
+This script is for legacy versions of PHP (&lt; 5.3), it inspects `/var/log/mail.log` and returns PHP scripts that exceed `MAX_MAILS` over the last number of `MINUTES`.
 
 Usually you want to run this script combined with `php-shell-scan` and `php-spam`.
 
