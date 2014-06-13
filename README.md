@@ -9,18 +9,18 @@ more than `MAX_CONNECTIONS` per time `PERIOD`.
 
 Tipical mail server setup.
 
-USAGE
+*USAGE*
 
     postfix-spam-scan [PERIOD] [MAX_CONNECTIONS]
 
-EXAMPLES
+*EXAMPLES*
 
     postfix-spam-scan 1hour
     postfix-spam-scan 1hour 90
     0 * * * * postfix-spam-scan 1hour 90 | emergency-mail 3000
 
 
-TODO: full support for botnet detector based on number of different networks, unkowns and IP addresses.
+*TODO: full support for botnet detector based on number of different networks, unkowns and IP addresses.*
 
 
 exim-spam-scan
@@ -31,11 +31,11 @@ than exceed `MAX_CONNECTIONS` during the last `SECONDS`.
 
 Tipical web server setup.
 
-USAGE
+*USAGE*
 
     postfix-spam-scan [SECONDS] [MAX_CONNECTIONS]
 
-EXAMPLES
+*EXAMPLES*
 
     exim-spam-scan 3600
     exim-spam-scan 3600 60
@@ -48,11 +48,11 @@ Scans a list of files looking for common PHP Shell patterns. It disables the fou
 moving them on the `QUARANTINE_DIR`.
 
 
-USAGE
+*USAGE*
 
     php-shell-scan [QUARANTINE_DIR]
 
-EXAMPLES
+*EXAMPLES*
 
     find /home/ -iname "*php" | php-shell-scan
     30 5 * * * find /home/ -mtime -2 -iname "*php" | php-shell-scan
@@ -70,11 +70,11 @@ This script inspects `/var/log/phpmail.log` and returns scripts that exceed `MAX
 Usually you want to run this script combined with `php-shell-scan` and `php-spam-legacy`.
 
 
-USAGE
+*USAGE*
 
     php-spam [MAX_DAILY_MAILS]
 
-EXAMPLES
+*EXAMPLES*
 
     php-spam
     php-spam 100
@@ -117,11 +117,11 @@ Finally configure the `php.ini` to use those files:
 Usually you want to run this script combined with `php-shell-scan` and `php-spam`.
 
 
-USAGE
+*USAGE*
 
     php-spam-legacy [MINUTES] [MAX_MAILS]
 
-EXAMPLES
+*EXAMPLES*
 
     php-spam-legacy
     php-spam-legacy 10 30
@@ -138,5 +138,3 @@ This script opens an SMTP connection to a remote server and send the report thro
 In order to use this script you should copy `emergency-settings.example` to `emergency-settings` and edit them according to your needs.
 
 This script is particularly useful combined with `postfix-spam-scan` or `exim-spam-scan`.
-
-
