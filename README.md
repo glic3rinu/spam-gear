@@ -1,16 +1,16 @@
-Spam-gear
-=========
+# Spam-gear
+
 
 Some anti-spam artillery for your multi-user web and mail servers.
 
-**Installation**
+#### Installation
 ```bash
 cd /root
 git clone https://github.com/glic3rinu/spam-gear.git
 ```
 
-[postfix-spam-scan](postfix-spam-scan)
---------------------------------------
+### [postfix-spam-scan](postfix-spam-scan)
+
 
 Scans Postfix logs `/var/log/mail.log` looking for SASL authenticated users that make
 more than `MAX_CONNECTIONS` per time `PERIOD`. Covering the typical attacks on a mail server setup.
@@ -29,8 +29,8 @@ more than `MAX_CONNECTIONS` per time `PERIOD`. Covering the typical attacks on a
 *TODO: full support for botnet detector based on number of different networks, unkowns and IP addresses.*
 
 
-[exim-spam-scan](exim-spam-scan)
---------------------------------
+## [exim-spam-scan](exim-spam-scan)
+
 
 Scans Exim4 logs under `/var/log/exim/mainlog` looking for *local users* and *SMTP connections*
 that exceed `MAX_CONNECTIONS` during the last `SECONDS`. Covering the typical attacks on a shared hositing web server setup.
