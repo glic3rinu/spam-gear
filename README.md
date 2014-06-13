@@ -8,9 +8,7 @@ Some anti-spam artillery
 --------------------------------------
 
 Scans the postfix logs `/var/log/mail.log` looking for SASL authenticated users that make
-more than `MAX_CONNECTIONS` per time `PERIOD`.
-
-Tipical mail server setup.
+more than `MAX_CONNECTIONS` per time `PERIOD`. Covering the typical attacks on a mail server setup.
 
 *Usage*
 
@@ -29,9 +27,7 @@ Tipical mail server setup.
 --------------------------------
 
 Scans the postfix logs `/var/log/exim/mainlog` looking for local users and smtp connections
-than exceed `MAX_CONNECTIONS` during the last `SECONDS`.
-
-Tipical web server setup.
+than exceed `MAX_CONNECTIONS` during the last `SECONDS`. Covering the typical attacks on a shared hositing web server setup.
 
 *Usage*
 
