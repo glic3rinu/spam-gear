@@ -63,9 +63,8 @@ moving them on the `QUARANTINE_DIR`.
 php-spam
 --------
 
-With PHP >= 5.3 there is this feature that you can enable to log emails sent with PHP. This feature can be enabled
+With PHP >= 5.3 there is this feature that you can enable to log emails sent with PHP. It can be enabled
 by setting `mail.log = /var/log/phpmail.log` on the `php.ini`.
-
 
 This script inspects `/var/log/phpmail.log` and returns scripts that exceed `MAX_DAILY_MAILS`.
 
@@ -87,8 +86,7 @@ Usually you want to run this script combined with `php-shell-scan` and `php-spam
 php-spam-legacy
 ---------------
 
-PHP <= 5.2 has no built-in support for logging scripts that send mail. However, you can still log the php scripts that send mail by 
-creating a wrapper around sendmail.
+PHP <= 5.2 has no built-in support for logging scripts that send mail. However, mails sent through php scripts can still be logged by creating a wrapper around sendmail command.
 
 First create a `/usr/local/bin/phpsendmail` file with the following content
 ```bash
