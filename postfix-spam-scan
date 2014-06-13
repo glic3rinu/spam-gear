@@ -26,7 +26,7 @@ while read line; do
         numips=$(echo "$userlogs" | cut -d'[' -f3 | cut -d']' -f1 | sort | uniq | wc -l)
         unknown=$(echo "$userlogs" | grep 'client=unknown\[' | cut -d'[' -f3 | cut -d']' -f1 | sort | uniq | wc -l)
         nets=$(echo "$userlogs" | cut -d'[' -f2 | cut -d'=' -f2 | sed "s/.*[0-9].//" | sort | uniq | wc -l)
-        [ $sent = false ] && echo -e "$message" && sent=true
+        [ $sent = false ] && echo -e "${message}\n" && sent=true
         echo "${current[0]} (${nets} nets/${unknown} unknown/${numips} IPs) -- ${logentry}"
     fi;
 done < <(echo "$log" | cut -d'=' -f4 | sort -n | uniq -c)
