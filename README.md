@@ -32,10 +32,10 @@ than exceed `MAX_CONNECTIONS` during the last `SECONDS`.
 
 Tipical web server setup.
 
-*USAGE*
+*Usage*
 
     postfix-spam-scan [SECONDS] [MAX_CONNECTIONS]
-*EXAMPLES*
+*Examples*
 
     exim-spam-scan 3600
     exim-spam-scan 3600 60
@@ -48,11 +48,11 @@ Scans a list of files looking for common PHP Shell patterns. It disables the fou
 moving them on the `QUARANTINE_DIR`.
 
 
-*USAGE*
+*usage*
 
     php-shell-scan [QUARANTINE_DIR]
 
-*EXAMPLES*
+*Examples*
 
     find /home/ -iname "*php" | php-shell-scan
     30 5 * * * find /home/ -mtime -2 -iname "*php" | php-shell-scan
