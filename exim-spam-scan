@@ -13,7 +13,7 @@ log=$(grep '<=' /var/log/exim4/mainlog | awk -v SECONDS=$SECONDS '
         now = systime()
         current = strftime("%y:%m:%d:%H:%m:%S", now)
         print "Current date/time is: " current
-        onehr = SECONDS
+        boundary = SECONDS
     } {
         column1 = $1
         column2 = $2
@@ -21,7 +21,7 @@ log=$(grep '<=' /var/log/exim4/mainlog | awk -v SECONDS=$SECONDS '
         split(column2, t, ":")
         logtime = sprintf("%s %s %s %s %s %s", d[1], d[2], d[3], t[1], t[2], t[3])
         log_entry_time = mktime(logtime)
-        if ( now - log_entry_time <= onehr ){
+        if ( now - log_entry_time <= boundary ){
             print $0
         }
     }'
