@@ -1,0 +1,99 @@
+#!/usr/bin/python
+
+# This is a rewrite of this project https://github.com/emposha/Shell-Detector
+# Shorter, more robust and faster
+# How faster? 3m12.543s vs 0m19.876s ;)
+
+# USAGES
+#   find . -type f | python php-shell-detector.py
+#   python php-shell-detector.py updatedb
+
+
+import os
+import re
+import sys
+import base64
+import urllib2
+
+
+def unserialize_array(s):
+    (l, _, s) = s.partition(':')
+    a, k, s = {}, None, s[1:]
+    for i in range(0, int(l) * 2):
+        (v, s) = unserialize(s)
+        if k:
+            a[k] = v
+            k = None
+        else:
+            k = v
+    return (a, s[1:])
+
+
+def unserialize_string(s):
+    (l, _, s) = s.partition(':')
+    return (s[1:int(l) + 1], s[int(l) + 3:])
+
+
+def unserialize(s):
+    methods = {
+        'i': lambda s: (int(x[0]), s.partition(';')[2]),
+        'b': lambda s: (x[0] == '1', s.partition(';')[2]),
+        'd': lambda s: (float(x[0]), s.partition(';')[2]),
+        'n': lambda s: (None, s),
+        's': unserialize_string,
+        'a': unserialize_array,
+    }
+    return methods[s[0].lower()](s[2:])
+
+
+def updatedb(dbdir):
+    url = 'https://raw.github.com/emposha/PHP-Shell-Detector/master/shelldetect.db'
+    database = urllib2.urlopen(url).read()
+    try:
+        unserialize(base64.decodestring(database))
+    except Exception as e:
+        print str(e)
+        sys.exit(1)
+    with open(dbdir, "wb") as local_file:
+        local_file.write(database)
+    sys.exit(0)
+
+
+def analyse(dbdir):
+    regex_shell = re.compile('(.*)\[(.*?)\]\[(.*?)\]\[(.*?)\]')
+    database = str(open(dbdir, 'r').read())
+    database = base64.decodestring(database)
+    
+    fingerprints = []
+    for fingerprint, shellname in unserialize(database)[0].iteritems():
+        if fingerprint == "version":
+            continue
+        if 'bb:' in fingerprint:
+            fingerprint = bytes(fingerprint.replace('bb:', ''))
+            fingerprint = base64.decodestring(fingerprint)
+        fingerprints.append([re.compile(re.escape(fingerprint)), shellname])
+    
+    for filename in sys.stdin.readlines():
+        filename = filename.strip()
+        if filename.endswith('.php'):
+            try:
+                filecontent = open(filename, 'rt', -1).read()
+            except IOError:
+                sys.stderr.write('%s: does not exists' % filename)
+                continue
+            for fingerprint, shellname in fingerprints:
+                if fingerprint.findall(filecontent):
+                    shell = regex_shell.findall(shellname)[0]
+                    label = "[%s]" % shell[0]
+                    if shell[2] not in ['0', '1']:
+                        label += " INFECTED-FILE"
+                    print filename, label
+
+
+if __name__ == "__main__":
+    dirname = os.path.dirname(os.path.realpath(__file__))
+    dbdir = os.path.join(dirname, 'shelldetect.db')
+    if len(sys.argv) > 1 and sys.argv[1] == 'updatedb':
+        updatedb(dbdir)
+    else:
+        analyse(dbdir)
