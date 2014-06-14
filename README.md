@@ -142,7 +142,7 @@ auto_prepend_file = /home/httpd/htdocs/put_environment_variables.php
 ## [emergency-mail](emergency-mail)
 
 
-Sometimes during spam attacks your local mail server queue is badly saturated with tons of spam, potentially creating large delays on mail delivery, including alerts sent by the awesome spam-gear scripts :).
+Sometimes during spam attacks your local mail queue is badly saturated with tons of spam, potentially creating large delays on mail delivery, including alerts sent by the awesome spam-gear scripts :).
 
 To avoid reciving delayed spam alerts this script opens an SMTP connection to a remote server and sends the report through it. But to avoid spamming your personal email account, it only does so when the local queue contains more than `EMERGENCY_THRESHOLD` messages.
 
