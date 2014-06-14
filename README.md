@@ -54,7 +54,9 @@ that exceed `MAX_CONNECTIONS` during the last `SECONDS`. Covering the typical at
 
 ## [php-shell-scan](php-shell-scan)
 
-Reads file names from stdin and looks for common PHP Shell patterns, combining custom regex expressions and clamscan analyisis. It automatically disables the infected scripts moving them on a `QUARANTINE_DIR`.
+This is anti-PHP Shells heavy weaponry. It combines custom regular expressions, Clamscan and [PHP-Shell-Dectector](http://www.shelldetector.com/) all within a single shot. Also It automatically disables the malicious files by moving them into a `QUARANTINE_DIR`.
+
+A rewrite of the [Python version](https://github.com/emposha/Shell-Detector) of PHP-Shell-Dectector is included in this package ([php-shell-detector](php-shell-detector)). Motivated because the original implementation just crashed when testing it through our quarantine directory, the output was hard to parse, it had no support for inspecting specific files (only dirs). And guess what? it turned out to be x10 faster than the orifinal implementation ;).
 
 
 #### Usage
