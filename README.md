@@ -71,7 +71,7 @@ A rewrite of the [Python version](https://github.com/emposha/Shell-Detector) of 
 ## [php-spam](php-spam)
 
 With PHP &ge; 5.3 there is this feature that you can enable for logging emails sent via PHP. This can be done 
-by setting `mail.log = /var/log/phpmail.log` on `php.ini`.
+by setting `mail.log = /var/log/phpmail.log` on `php.ini`. Don't forget to rotate this new log file.
 
 
 This script inspects `/var/log/phpmail.log` and returns the PHP scripts that exceed `MAX_DAILY_MAILS`.
