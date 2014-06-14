@@ -8,10 +8,11 @@ QUARANTINE_DIR=${1:-"/root/shells/"}
 
 [[ ! -e "$QUARANTINE_DIR" ]] && mkdir "$QUARANTINE_DIR"
 
-
 TMP_FILE=$(mktemp)
-SHELLS_TIME=$(date +%s)
 FOUND=false
+
+
+SHELLS_TIME=$(date +%s)
 while read filename; do
     if [[ "$filename" != *php ]]; then
         echo "$filename" >> "$TMP_FILE"
