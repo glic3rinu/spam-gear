@@ -11,51 +11,68 @@ QUARANTINE_DIR=${1:-"/root/shells/"}
 
 TMP_FILE=$(mktemp)
 SHELLS_TIME=$(date +%s)
-SHELLS=""
-while read line; do
+while read filename; do
     # Lookup for common php shell patterns
-    if [[ $(egrep "(@error_reporting\(0\); @ini_set\('error_log',NULL\); @ini_set\('log_errors',0\);|7X1re9s2z/Dn9VcwmjfZq\+PYTtu7s2MnaQ5t2jTpcugp6ePJsmxrkS1PkuNkWf77C4C)" "$line" 2> /dev/null) ]]; then
-        mv "$line" "$QUARANTINE_DIR"
-        SHELLS="${SHELLS}\n${line} [COMMON]"
-    elif [[ $(grep '$x74\[41\].$x74\[71\].$x74\[10\].$x74\[96\].$x74\[12\].$x' "$line" 2> /dev/null) ]]; then
-        mv "$line" "$QUARANTINE_DIR"
-        SHELLS="${SHELLS}\n${line} [COMMON]"
+    if [[ $(egrep "(@error_reporting\(0\); @ini_set\('error_log',NULL\); @ini_set\('log_errors',0\);|7X1re9s2z/Dn9VcwmjfZq\+PYTtu7s2MnaQ5t2jTpcugp6ePJsmxrkS1PkuNkWf77C4C)" "$filename" 2> /dev/null) ]]; then
+        mv "$filename" "$QUARANTINE_DIR"
+        echo "${filename} [COMMON]"
+    elif [[ $(grep '$x74\[41\].$x74\[71\].$x74\[10\].$x74\[96\].$x74\[12\].$x' "$filename" 2> /dev/null) ]]; then
+        mv "$filename" "$QUARANTINE_DIR"
+        echo "${filename} [COMMON]"
     else
         # Cleanup possible backdoors
-        if [[ $(grep '<?php\s*eval\s*(\s*base64_decode\s*(\s*$_POST\['"'"'[0-z]*'"'"'\]));?>' "$line" 2> /dev/null) ]]; then
-            sed -i 's/<?php\s*eval\s*(\s*base64_decode\s*(\s*$_POST\['"'"'[0-z]*'"'"'\]));?>//g' "$line" 2> /dev/null
-            SHELLS="${SHELLS}\n${line} [BACKDOOR]"
-	elif [[ $(grep 'eval\s*(\s*base64_decode.*_POST' "$line" 2> /dev/null) ]]; then
-            SHELLS="${SHELLS}\n${line} [NON-CLEANED BACKDOOR]"
+        if [[ $(grep '<?php\s*eval\s*(\s*base64_decode\s*(\s*$_POST\['"'"'[0-z]*'"'"'\]));?>' "$filename" 2> /dev/null) ]]; then
+            sed -i 's/<?php\s*eval\s*(\s*base64_decode\s*(\s*$_POST\['"'"'[0-z]*'"'"'\]));?>//g' "$filename" 2> /dev/null
+            echo "${filename} [BACKDOOR]"
+    elif [[ $(grep 'eval\s*(\s*base64_decode.*_POST' "$filename" 2> /dev/null) ]]; then
+            echo "${filename} [NON-CLEANED BACKDOOR]"
         fi
-        [[ "$line" != "" ]] && echo "$line"
+        if [[ "$filename" != "" ]]; then
+            echo "$filename" >> "$TMP_FILE"
+        fi
     fi;
-done > "$TMP_FILE"
+done
 
 
 CLAM_TIME=$(date +%s)
+REMOVED=""
 if [[ -s "$TMP_FILE" ]]; then
     # clamscan is not able to read a list of files from stdin, WTF!
-    while read line; do
-        mv "$line" "$QUARANTINE_DIR"
-        SHELLS="${SHELLS}\n${line} [CLAMSCAN]"
+    while read filename; do
+        mv "$filename" "$QUARANTINE_DIR"
+        echo "${filename} [CLAMSCAN]"
+        REMOVED="${REMOVED}\n${filename}"
     done < <(clamscan -i -f "$TMP_FILE" 2>&1 | grep FOUND | cut -d':' -f1)
 fi
+
+
+DETECTOR_TIME=$(date +%s)
+echo "$REMOVED"| grep -v -x -f - "$TMP_FILE"
+while read line; do
+    FILENAME=$(echo "$line" | awk {'print $1'})
+    if [[ $(echo "$line" | grep ' INFECTED-FILE$') ]]; then
+        echo "${FILENAME} [NON-CLEANED BACKDOOR]"
+    else
+        mv "$FILENAME" "$QUARANTINE_DIR"
+        echo "$FILENAME [DETECTOR]"
+    fi
+done < <(cat "$TMP_FILE" | $(dirname $0)/php-shell-detector)
+
 
 rm -f "$TMP_FILE"
 
 if [[ "$SHELLS" ]]; then
-    CLAM_TIME=$(($(date +%s) - $CLAM_TIME))
     SHELLS_TIME=$(($(date +%s) - $SHELLS_TIME))
-    
+    CLAM_TIME=$(($(date +%s) - $CLAM_TIME))
+    DETECTOR_TIME=$(($(date +%s) - $DETECTOR_TIME))
     echo -e "$SHELLS"
     echo -e "\n--------------------------"
-    echo "CLAM TIME: $CLAM_TIME seconds"
     echo "SHELLS TIME: $SHELLS_TIME seconds"
-    echo "TOTAL TIME: $(($CLAM_TIME+$SHELLS_TIME)) seconds"
+    echo "CLAM TIME: $CLAM_TIME seconds"
+    echo "DETECTOR TIME: $DETECTOR_TIME seconds"
+    echo "TOTAL TIME: $(($CLAM_TIME+$SHELLS_TIME+$DETECTOR_TIME)) seconds"
     exit 1
 fi
 
 
 exit 0
-
