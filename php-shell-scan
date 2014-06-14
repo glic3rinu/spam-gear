@@ -47,7 +47,6 @@ fi
 
 
 DETECTOR_TIME=$(date +%s)
-echo "$REMOVED"| grep -v -x -f - "$TMP_FILE"
 while read line; do
     FILENAME=$(echo "$line" | awk {'print $1'})
     if [[ $(echo "$line" | grep ' INFECTED-FILE$') ]]; then
@@ -56,7 +55,7 @@ while read line; do
         mv "$FILENAME" "$QUARANTINE_DIR"
         echo "$FILENAME [DETECTOR]"
     fi
-done < <(cat "$TMP_FILE" | $(dirname $0)/php-shell-detector)
+done < <(echo "$REMOVED" | grep -v -x -f - "$TMP_FILE" | $(dirname $0)/php-shell-detector)
 
 
 rm -f "$TMP_FILE"
