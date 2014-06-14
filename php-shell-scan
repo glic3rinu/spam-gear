@@ -13,7 +13,11 @@ TMP_FILE=$(mktemp)
 SHELLS_TIME=$(date +%s)
 FOUND=false
 while read filename; do
-    # Lookup for common php shell patterns
+    if [[ "$filename" != *php ]]; then
+        echo "$filename" >> "$TMP_FILE"
+        continue
+    fi
+    # Lookup for common PHP shell patterns
     if [[ $(egrep "(@error_reporting\(0\); @ini_set\('error_log',NULL\); @ini_set\('log_errors',0\);|7X1re9s2z/Dn9VcwmjfZq\+PYTtu7s2MnaQ5t2jTpcugp6ePJsmxrkS1PkuNkWf77C4C)" "$filename" 2> /dev/null) ]]; then
         FOUND=true
         mv "$filename" "$QUARANTINE_DIR"
@@ -71,7 +75,7 @@ if [[ $FOUND = true ]]; then
     CLAM_TIME=$(($(date +%s) - $CLAM_TIME))
     DETECTOR_TIME=$(($(date +%s) - $DETECTOR_TIME))
     echo ""
-    echo " - - - - - - - - - - - - - - - - - - - - - - - - - - "
+    echo "- - - - - - - - - - - - - - - - - - - - - - - - - -"
     echo "SHELLS TIME: $SHELLS_TIME seconds"
     echo "CLAM TIME: $CLAM_TIME seconds"
     echo "DETECTOR TIME: $DETECTOR_TIME seconds"
