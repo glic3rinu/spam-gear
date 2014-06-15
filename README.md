@@ -201,5 +201,5 @@ PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/root/spam-gea
 # Mail server crontab
 
 PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/root/spam-gear
-0 * * * * postfix-spam-scan -p 1hour -m 90 -d 10,10 -n auth.ourdomain.org | emergency-mail 3000
+0 * * * * postfix-spam-scan -m 90 -d 10,10 -n auth.ourdomain.org | emergency-mail 3000
 ```
