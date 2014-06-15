@@ -1,6 +1,7 @@
 #!/bin/bash
 
 # TODO notify user and custom message file
+# TODO add shell name
 
 print_help () {
     bold=$(tput bold)
