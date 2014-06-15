@@ -2,7 +2,7 @@
 
 # This is a rewrite of this project https://github.com/emposha/Shell-Detector
 # Shorter, more robust and faster
-# How faster? 3m12.543s vs 0m19.876s ;)
+# How fast? 3m12.543s vs 0m19.876s ;)
 
 # USAGES
 #   find . -type f | python php-shell-detector.py
@@ -52,7 +52,7 @@ def updatedb(dbdir):
     try:
         unserialize(base64.decodestring(database))
     except Exception as e:
-        print str(e)
+        sys.stderr.write(str(e) + '\n')
         sys.exit(1)
     with open(dbdir, "wb") as local_file:
         local_file.write(database)
@@ -79,7 +79,7 @@ def analyse(dbdir):
             try:
                 filecontent = open(filename, 'rt', -1).read()
             except IOError:
-                sys.stderr.write('%s: does not exists' % filename)
+                sys.stderr.write('%s: does not exists\n' % filename)
                 continue
             for fingerprint, shellname in fingerprints:
                 if fingerprint.findall(filecontent):
