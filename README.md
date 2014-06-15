@@ -43,7 +43,10 @@ It can disable users based on the number of connections from different and unkno
     
     -n, --niss=[MASTER_SERVER]
         Disables a NIS account rather than a local account.
-        It usses SSH and MASTER_SERVER defaults to localhost.
+        It usses SSH and NIS MASTER_SERVER defaults to localhost.
+    
+    h, --help
+        Shows help message
 
 #### Examples
     postfix-spam-scan
