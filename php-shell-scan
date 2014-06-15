@@ -90,7 +90,7 @@ while read filename; do
             [[ $QUARANTINE = true ]] && 
                 sed -i "s/${BACKDOOR1}//g" "${filename}" 2> /dev/null
             echo "${filename} [BACKDOOR]"
-        elif [[ $(grep "${BACKDOR2}" "${filename}" 2> /dev/null) ]]; then
+        elif [[ $(grep "${BACKDOOR2}" "${filename}" 2> /dev/null) ]]; then
             found=true
             echo "${filename} [NON-CLEANED BACKDOOR]"
         elif [[ "${filename}" != "" ]]; then
