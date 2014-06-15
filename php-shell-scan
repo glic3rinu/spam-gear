@@ -1,5 +1,6 @@
 #!/bin/bash
 
+# TODO notify user and custom message file
 
 print_help () {
     bold=$(tput bold)
@@ -18,6 +19,15 @@ print_help () {
 		    
 		    ${bold}-q, --quarantine=[QUARANTINE_DIR]${normal}
 		            Moves infected files into QUARANTINE_DIR, which defaults to /root/shells
+		    
+		    ${bold}-n, --notify-user=[MAIL_PATTERN]${normal}
+		            Send a notification mail to the user when a shell has been detected on her home
+		            MAIL_PATTERN defaults to "sed s#^/home/\(.*\)/.*#\1@$(hostname -d)#"
+		    
+		    ${bold}-c, --custom-email=EMAIL_PATH${normal}
+		            Optional path to look for a custom email for user notification.
+		            Environemnt variables available on the email are:
+		                $${USERNAME}, $${DISABLED_SHELLS}, $${INFECTED_FILES} and $${INFECTED_FILES_PATTERN}
 		    
 		    ${bold}-h, --help${normal}
 		            Prints this help text
