@@ -2,7 +2,7 @@
 
 Anti-spam artillery for your multi-user web and mail servers.
 
-This project provides a handful of tools that provide a good-enough solution to two unsolvable problems:
+This project consists of a handful of tools that try to provide a good-enough solution to two unsolvable problems:
 
 1. Spammers sending spam through compromised PHP web applications on shared hosting environments
 2. Spammers sending spam via stolen e-mail account credentials
