@@ -63,11 +63,11 @@ A rewrite of the [Python version](https://github.com/emposha/Shell-Detector) of 
     find . | php-shell-scan [ OPTION ]
 
 #### Options
-* -q, --quarantine=[QUARANTINE_DIR] <br>
-    Moves infected files into QUARANTINE_DIR, which defaults to /root/shells
-
-* -h, --help <br>
-    Shows help text
+    -q, --quarantine=[QUARANTINE_DIR]
+        Moves infected files into QUARANTINE_DIR, which defaults to /root/shells
+    
+    -h, --help
+        Shows help text
 
 #### Examples
     find /home/ -iname "*php" | php-shell-scan
