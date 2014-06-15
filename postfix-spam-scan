@@ -2,6 +2,7 @@
 
 # USAGE:
 #   bash postfix-spam-scan PERIOD MAX_CONNECTIONS
+# TODO bash postfix-spam-scan PERIOD -w MAX_CONNECTIONS,MAX_NETS,MAX_UNKNOWNS -d MAX_CONNECTIONS,MAX_NETS,MAX_UNKNOWNS
 
 
 PERIOD=${1:-'1hour'}

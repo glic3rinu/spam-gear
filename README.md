@@ -54,18 +54,24 @@ that exceed `MAX_CONNECTIONS` during the last `SECONDS`. Covering the typical at
 
 ## [php-shell-scan](php-shell-scan)
 
-This is anti PHP shells heavy weaponry. It combines custom regular expressions, Clamscan and [PHP-Shell-Dectector](http://www.shelldetector.com/), all within a single shot. It disables the malicious files by moving them into a `QUARANTINE_DIR`.
+This is anti PHP shells heavy weaponry. It combines custom regular expressions, Clamscan and [PHP-Shell-Dectector](http://www.shelldetector.com/), all within a single shot. It can disable malicious files by moving them into a `QUARANTINE_DIR`.
 
 A rewrite of the [Python version](https://github.com/emposha/Shell-Detector) of PHP-Shell-Dectector is included in this package ([php-shell-detector](php-shell-detector)). Motivated because the original implementation just crashed when testing it through our quarantine directory, the output was hard to parse, it had no support for inspecting specific files (only dirs). And guess what? it turned out to be x10 faster than the original implementation ;).
 
 
 #### Usage
+    find . | php-shell-scan [ OPTION ]
 
-    find . | php-shell-scan [QUARANTINE_DIR]
+#### Options
+ * `-q, --quarantine=[QUARANTINE_DIR]`
+    Moves infected files into QUARANTINE_DIR, which defaults to /root/shells
+ * `-h, --help`
+    Shows help text
 
 #### Examples
-
     find /home/ -iname "*php" | php-shell-scan
+    find /home/ -iname "*php" | php-shell-scan -q 
+    find /home/ -iname "*php" | php-shell-scan -q /dev/null
 
 
 ## [php-spam](php-spam)
@@ -115,7 +121,7 @@ PHP prior to 5.3 has no built-in support for logging PHP scripts that send email
 First create a `/usr/local/bin/phpsendmail` file with the following content
 ```bash
 #!/bin/bash
-logger -p mail.info "sendmail-php site=${HTTP_HOST}, client=${REMOTE_ADDR}, filename=${SCRIPT_FILENAME}, pwd=${PWD}, uid=${UID}, user=$(whoami), args=$*"
+logger -p mail.info "sendmail-php url=${HTTP_HOST}${REQUEST_URI}, client=${REMOTE_ADDR}, filename=${SCRIPT_FILENAME}, uid=${UID}, user=$(whoami), args=$*"
 /usr/lib/sendmail -t -i $*
 ```
 
@@ -123,10 +129,13 @@ PHP will have to set the needed environment variables before the sendmail wrappe
 
 ```php
 <?php
-    ob_start();
-    putenv("SCRIPT_FILENAME=" . $_SERVER['SCRIPT_FILENAME']);
-    putenv("HTTP_HOST=" . $_SERVER['HTTP_HOST']);
-    putenv("REMOTE_ADDR=" . $_SERVER['REMOTE_ADDR']);
+
+ob_start();
+$vars = array("SCRIPT_FILENAME", "HTTP_HOST", "REMOTE_ADDR", "REQUEST_URI");
+foreach ($vars as $var) {
+    putenv($var . "=" . $_SERVER[$var]);
+}
+
 ?>
 ```
 
@@ -172,8 +181,8 @@ This is how our crontabs look like
 
 PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/root/spam-gear
 0    * * * * exim-spam-scan 3600 60 | emergency-mail 2000
-30   5 * * * find /home/pangea/ -mtime -2 -iname "*php" | php-shell-scan
-*/10 * * * * { php-spam-legacy 10 10 && php-spam 500; } | php-shell-scan
+30   5 * * * find /home/pangea/ -mtime -2 -iname "*php" | php-shell-scan -q
+*/10 * * * * { php-spam-legacy 10 10 && php-spam 500; } | php-shell-scan -q
 0    0 * * * php-shell-detector updatedb
 ```
 
