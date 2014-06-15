@@ -5,29 +5,146 @@
 # TODO bash postfix-spam-scan PERIOD -w MAX_CONNECTIONS,MAX_NETS,MAX_UNKNOWNS -d MAX_CONNECTIONS,MAX_NETS,MAX_UNKNOWNS
 
 
-PERIOD=${1:-'1hour'}
-MAX_CONNECTIONS=${2:-90}
+print_help () {
+    bold=$(tput bold)
+    normal=$(tput sgr0)
+    cat <<- EOF
+		
+		${bold}NAME${normal}
+		    ${bold}postfix-spam-scan${normal} - Postfix logs spammers reporter
+		    
+		${bold}SYNOPSIS${normal}
+		    ${bold}postfix-spam-scan${normal} [ OPTION ]
+		    
+		${bold}DESCRIPTION${normal}
+		    Scans Postfix logs /var/log/mail.log looking for SASL authenticated users that make more than MAX_CONNECTIONS per time PERIOD.
+		    Covering the typical attacks on a mail server setup
+		    
+		    ${bold}-p, --period=PERIOD${normal}
+		            A DATE STRING compatible period "1hour", "1minute", etc see man date for more.
+		            Defaults to "1hour"
+		    
+		    ${bold}-m, --max-connections=MAX_CONNECTIONS${normal}
+		            Threshold value for number of connections beyond a report is made.
+		            Defaults to 90.
+		    
+		    ${bold}-d, --dissable-account=MAX_NETWORKS,MAX_UNKNOWNS${normal}
+		            Specifies the boundary conditions for the maximum number of networks and the maximum numbero or unknown IPs
+		            beyond which the user account is automatically disabled.
+		            Disabled by default.
+		    
+		    ${bold}-n, --niss=[MASTER_SERVER]${normal}
+		            Disables a NIS account rather than a local account.
+		            It usses SSH and MASTER_SERVER defaults to localhost.
+		    
+		    ${bold}-h, --help${normal}
+		            Prints this help text
+		    
+		${bold}EXAMPLES${normal}
+		    postfix-spam-scan
+		    
+		    postfix-spam-scan -p 30minutes -m 60
+		    
+		    postfix-spam-scan -d 10,10
+		    
+		EOF
+}
+
+
+PERIOD='1hour'
+MAX_CONNECTIONS=90
+disable=false
+nis=false
+NIS_SERVER='localhost'
+
+while true; do
+    case $1 in
+        -p|--period)
+            PERIOD=${2}
+            if [[ ! $(date -d "-${PERIOD}" 2> /dev/null) ]]; then
+                echo "${PERIOD}: Unsuported DATE STRING" >&2
+                exit 2
+            fi
+            shift; shift
+            ;;
+        -m|--max-connections)
+            MAX_CONNECTIONS=${2}
+            if ! [[ $MAX_NETS =~ ^[0-9]+$ ]]; then
+                echo "${MAX_CONNECTIONS}: Is not a number" >&2
+                exit 2
+            fi
+            shift; shift
+            ;;
+        -d|--dissable-acount)
+            disable=true
+            MAX_NETS=${2//,*/}
+            MAX_UNKNOWNS=${2//*,/}
+            if ! [[ $MAX_NETS =~ ^[0-9]+$ && $MAX_UNKNOWNS =~ ^[0-9]+$ ]]; then
+                echo "${MAX_NETS} or ${MAX_UNKNOWNS}: Are not numbers" >&2
+                exit 2
+            fi
+            shift; shift
+            ;;
+        -n|--nis)
+            nis=true;
+            if [[ "${2}" != "" && "${2}" != '-*' ]]; then
+                NIS_SERVER="${2}"
+                shift
+            fi
+            shift ;;
+        -h|--help) print_help; exit 0 ;;
+        -*) echo "$0: Unrecognized option $1" >&2; exit 2 ;;
+        *) break ;;
+    esac
+done
 
 
 log=$(
     grep "sasl_username=" /var/log/mail.log | awk '$0>=from&&$0<=to' \
-    from="$(date +%b" "%d" "%H:%M:%S -d -$PERIOD | sed 's/ 0\([0-9]\) /  \1 /')" \
+    from="$(date +%b" "%d" "%H:%M:%S -d -${PERIOD} | sed 's/ 0\([0-9]\) /  \1 /')" \
     to="$(date +%b" "%d" "%H:%M:%S | sed 's/ 0\([0-9]\) /  \1 /')" \
 )
 
-period=$(echo $PERIOD | sed "s/\([0-9]*\)/\1 /")
-message="During the last $period the following senders have made at least $MAX_CONNECTIONS SMTP connections."
-sent=false
+
+period=$(echo "${PERIOD}" | sed "s/\([0-9]*\)/\1 /")
+message="During the last ${period} the following senders have made at least ${MAX_CONNECTIONS} SMTP connections."
+found=false
+
 
 while read line; do
-    current=($(echo "$line"))
+    current=($(echo "${line}"))
     if [[ ${current[0]} != "" && ${current[0]} -ge $MAX_CONNECTIONS ]]; then
-        userlogs=$(echo "$log" | grep "sasl_username=${current[1]}")
-        logentry=$(echo "$userlogs" | head -n1)
-        numips=$(echo "$userlogs" | cut -d'[' -f3 | cut -d']' -f1 | sort | uniq | wc -l)
-        unknown=$(echo "$userlogs" | grep 'client=unknown\[' | cut -d'[' -f3 | cut -d']' -f1 | sort | uniq | wc -l)
-        nets=$(echo "$userlogs" | cut -d'[' -f2 | cut -d'=' -f2 | sed "s/.*[0-9].//" | sort | uniq | wc -l)
-        [ $sent = false ] && echo -e "${message}\n" && sent=true
-        echo "${current[0]} (${nets} nets/${unknown} unknown/${numips} IPs) -- ${logentry}"
-    fi;
+        userlogs=$(echo "${log}" | grep "sasl_username=${current[1]}")
+        logentry=$(echo "${userlogs}" | head -n1)
+        numips=$(echo "${userlogs}" | cut -d'[' -f3 | cut -d']' -f1 \
+                | sort | uniq | wc -l)
+        unknown=$(echo "${userlogs}" | grep 'client=unknown\[' \
+                | cut -d'[' -f3 | cut -d']' -f1 | sort | uniq | wc -l)
+        nets=$(echo "${userlogs}" | cut -d'[' -f2 | cut -d'=' -f2 \
+                | sed "s/.*[0-9].//" | sort | uniq | wc -l)
+        if [[ $found = false ]]; then
+            echo -e "${message}\n"
+            found=true
+        fi
+        report="${current[0]} (${nets} nets/${unknown} unknown/${numips} IPs) -- ${logentry}"
+        if [[ $disable = true && $nets -gt $MAX_NETS && $unknown -gt $MAX_UNKNOWNS ]]; then
+            report="${report} [DISABLED]"
+            if [[ $nis = true ]]; then
+                echo "NIS"
+#                ssh root@${NIS_SERVER} "
+#                    sed -i 's/^${current[1]}:/${current[1]}:*/' /var/yp/ypfiles/shadow &&
+#                    make -C /var/yp/"
+            else
+                echo "LOCAL"
+#                passwd "${current[1]}" -l
+            fi
+            (
+                echo "Subject: SPAMMER DETECTED AT $(hostname -f) [USER DISABLED]"
+                echo "To: root@$(hostname -d)"
+                echo ""
+                echo "${msg}"
+            ) | sendmail root@$(hostname -d) -
+        fi
+        echo "${report}"
+    fi
 done < <(echo "$log" | cut -d'=' -f4 | sort -n | uniq -c)

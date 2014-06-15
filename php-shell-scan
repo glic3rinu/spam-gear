@@ -23,11 +23,11 @@ print_help () {
 		            Prints this help text
 		    
 		${bold}EXAMPLES${normal}
-		    find . | php-shell-scan
+		    find . -iname '*php' | php-shell-scan
 		    
-		    find . | php-shell-scan -q
+		    find . -type f | php-shell-scan -q
 		    
-		    find . | php-shell-scan -q /dev/null
+		    find . -type f | php-shell-scan -q /dev/null
 		    
 		EOF
 }

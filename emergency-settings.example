@@ -1,6 +1,6 @@
 #!/bin/bash
 
-EMERGENCY_SERVER_NAME="$(hostname).yourdomain.org"
+EMERGENCY_SERVER_NAME="$(hostname -f)"
 EMERGENCY_TRESHOLD=3000
 EMERGENCY_MAIL_FROM="root@yourdomain.org"
 EMERGENCY_MAIL_TO="(

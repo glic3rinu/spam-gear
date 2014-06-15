@@ -70,8 +70,8 @@ A rewrite of the [Python version](https://github.com/emposha/Shell-Detector) of 
         Shows help text
 
 #### Examples
-    find /home/ -iname "*php" | php-shell-scan
-    find /home/ -iname "*php" | php-shell-scan -q 
+    find /home/ -type f | php-shell-scan
+    find /home/ -type f | php-shell-scan -q
     find /home/ -iname "*php" | php-shell-scan -q /dev/null
 
 
