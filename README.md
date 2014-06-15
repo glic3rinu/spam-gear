@@ -21,7 +21,7 @@ git clone https://github.com/glic3rinu/spam-gear.git
 Scans Postfix logs `/var/log/mail.log` looking for SASL authenticated users that make
 more than `MAX_CONNECTIONS` per time `PERIOD`. Covering the typical attacks on a mail server setup.
 
-It can disable users based on the number of connections from different and unknown networks. Which is a very clear pattern that connections are done from a botnet.
+It can disable users based on the number of connections from different and unknown networks. Which is a very distinguishable pattern of mails sent from a botnet.
 
 #### Usage
     postfix-spam-scan [OPTIONS]
