@@ -37,9 +37,8 @@ It can disable users based on the number of connections from different and unkno
         Defaults to 90.
     
     -d, --dissable-account=MAX_NETWORKS,MAX_UNKNOWNS
-        Specifies the boundary conditions for the maximum number of networks and
-        the maximum numbero or unknown IPs beyond which the user account is 
-        automatically disabled.
+        Specifies the boundary conditions for the maximum number of networks and unknown IPs
+        beyond which the user account is automatically disabled.
         Disabled by default.
     
     -n, --niss=[MASTER_SERVER]

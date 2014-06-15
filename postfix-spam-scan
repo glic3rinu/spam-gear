@@ -29,7 +29,7 @@ print_help () {
 		            Defaults to 90.
 		    
 		    ${bold}-d, --dissable-account=MAX_NETWORKS,MAX_UNKNOWNS${normal}
-		            Specifies the boundary conditions for the maximum number of networks and the maximum numbero or unknown IPs
+		            Specifies the boundary conditions for the maximum number of networks and unknown IPs
 		            beyond which the user account is automatically disabled.
 		            Disabled by default.
 		    
