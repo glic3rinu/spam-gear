@@ -109,7 +109,7 @@ if [[ -s "${tmp_file}" ]]; then
             mv "${filename}" "${QUARANTINE_DIR}"
         echo "${filename} [CLAMSCAN]"
         removed="${removed}\n${filename}"
-    done < <(clamscan -i -f "${tmp_file}" 2>&1 | grep found | cut -d':' -f1)
+    done < <(clamscan -i -f "${tmp_file}" 2>&1 | grep FOUND | cut -d':' -f1)
 fi
 
 
