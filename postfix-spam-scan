@@ -69,7 +69,7 @@ while true; do
             ;;
         -m|--max-connections)
             MAX_CONNECTIONS=${2}
-            if ! [[ $MAX_NETS =~ ^[0-9]+$ ]]; then
+            if ! [[ $MAX_CONNECTIONS =~ ^[0-9]+$ ]]; then
                 echo "${MAX_CONNECTIONS}: Is not a number" >&2
                 exit 2
             fi
