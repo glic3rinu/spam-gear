@@ -119,6 +119,11 @@ r='#000000'>Change WHMCS Info<br>Patch Control Panel : [patch]/admin<br>Path
 EOF
 )
 
+BACKDOORS=$(cat <<- EOF
+<?php\s*eval\s*(\s*base64_decode\s*(\s*\$_POST\['[0-z]*'\]));?>
+<?php\s*if(md5(\$_COOKIE\['_wp_debugger'\])==\"[0-z]*\"){\s*eval(base64_decode(\$_POST\['file'\]));\s*exit;\s*}\s*?>
+EOF
+)
 
 regex_time=$(date +%s)
 while read filename; do
@@ -141,18 +146,23 @@ while read filename; do
         fi
     else
         # Cleanup possible backdoors
-        BACKDOOR1="<?php\s*eval\s*(\s*base64_decode\s*(\s*\$_POST\['[0-z]*'\]));?>"
-        BACKDOOR2='eval\s*(\s*base64_decode.*_POST'
-        if [[ $(grep -l "${BACKDOOR1}" "${filename}" 2> /dev/null) ]]; then
-            process_shell "${filename}" false
-            [[ $QUARANTINE = true ]] && 
-                sed -i "s/${BACKDOOR1}//g" "${filename}" 2> /dev/null
-            echo "${filename} [REGEX] [PHP-Backdoor]"
-        elif [[ $(grep -l "${BACKDOOR2}" "${filename}" 2> /dev/null) ]]; then
-            process_shell "${filename}" false
-            echo "${filename} [REGEX] [PHP-Backdoor] [NON-CLEANED]"
-        elif [[ "${filename}" != "" ]]; then
-            echo "${filename}" >> "${tmp_file}"
+        backdoor_found=false
+        while read backdor; do
+            if [[ $(grep -l "${backdor}" "${filename}" 2> /dev/null) ]]; then
+                backdoor_found=true
+                process_shell "${filename}" false
+                [[ $QUARANTINE = true ]] && 
+                    sed -i "s/${BACKDOOR}//g" "${filename}" 2> /dev/null
+                echo "${filename} [REGEX] [PHP-Backdoor]"
+        done < <(echo "${BACKDOORS}"
+        BACKDOOR_REGEX='eval\s*(\s*base64_decode.*_POST'
+        if [[ backdoor_found = false ]]; then
+            if [[ $(grep -l "${BACKDOOR_REGEX}" "${filename}" 2> /dev/null) ]]; then
+                process_shell "${filename}" false
+                echo "${filename} [REGEX] [PHP-Backdoor] [NON-CLEANED]"
+            elif [[ "${filename}" != "" ]]; then
+                echo "${filename}" >> "${tmp_file}"
+            fi
         fi
     fi;
 done

@@ -2,6 +2,7 @@ From: noreply@$(hostname -d)
 To: $EMAIL
 Bcc: root@$(hostname -d)
 Subject: [$(hostname -d)] Malicious files have been found
+Content-Type: text/plain; charset="utf-8"
 
 Hi $USERNAME,
 This is an automatic message.
