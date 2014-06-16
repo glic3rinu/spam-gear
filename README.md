@@ -90,14 +90,14 @@ A rewrite of the [Python version](https://github.com/emposha/Shell-Detector) of 
         Moves infected files into QUARANTINE_DIR, which defaults to /root/shells
     
     -n, --notify-user=[USERNAME_PATTERN]
-            Send a notification mail to the user when a shell has been detected on her home
-            USERNAME_PATTERN defaults to '^/home/\([^/.]*\)/.*'
+        Send a notification mail to the user when a shell has been detected on her home
+        USERNAME_PATTERN defaults to '^/home/\([^/.]*\)/.*'
     
     -c, --custom-email=EMAIL_PATH
-            Optional path to look for a custom email for user notification.
-            Uses `default_shell_nofification.email` by default.
-            Environemnt variables available on the email are:
-                ${EMAIL}, ${USERNAME} and ${SHELLS}
+        Optional path to look for a custom email for user notification.
+        Uses `default_shell_nofification.email` by default.
+        Environemnt variables available on the email are:
+            ${EMAIL}, ${USERNAME} and ${SHELLS}
     
     -h, --help
         Shows help text
