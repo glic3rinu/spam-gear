@@ -9,46 +9,46 @@ print_help () {
     bold=$(tput bold)
     normal=$(tput sgr0)
     cat <<- EOF
-		
-		${bold}NAME${normal}
-		    ${bold}postfix-spam-scan${normal} - Postfix logs spammers reporter
-		    
-		${bold}SYNOPSIS${normal}
-		    ${bold}postfix-spam-scan${normal} [ OPTION ]
-		    
-		${bold}DESCRIPTION${normal}
-		    Scans Postfix logs /var/log/mail.log looking for SASL authenticated users that make more than MAX_CONNECTIONS per time PERIOD.
-		    Covering the typical attacks on a mail server setup
-		    
-		    ${bold}-p, --period=PERIOD${normal}
-		            A DATE STRING compatible period "1hour", "1minute", etc see man date for more.
-		            Defaults to "1hour"
-		    
-		    ${bold}-m, --max-connections=MAX_CONNECTIONS${normal}
-		            Threshold value for number of connections beyond a report is made.
-		            Defaults to 90.
-		    
-		    ${bold}-d, --dissable-account=MAX_NETWORKS,MAX_UNKNOWNS${normal}
-		            Specifies the boundary conditions for the maximum number of networks and unknown IPs
-		            beyond which the user account is automatically disabled.
-		            A separated e-mail is sent when a user is disabled so you don't miss it.
-		            Dissabling accounts is switched off by default.
-		    
-		    ${bold}-n, --niss=[MASTER_SERVER]${normal}
-		            Disables a NIS account rather than a local account.
-		            It usses SSH and MASTER_SERVER defaults to localhost.
-		    
-		    ${bold}-h, --help${normal}
-		            Prints this help text
-		    
-		${bold}EXAMPLES${normal}
-		    postfix-spam-scan
-		    
-		    postfix-spam-scan -p 30minutes -m 60
-		    
-		    postfix-spam-scan -d 10,10
-		    
-		EOF
+	
+	${bold}NAME${normal}
+	    ${bold}postfix-spam-scan${normal} - Postfix logs spammers reporter
+	    
+	${bold}SYNOPSIS${normal}
+	    ${bold}postfix-spam-scan${normal} [ OPTION ]
+	    
+	${bold}DESCRIPTION${normal}
+	    Scans Postfix logs /var/log/mail.log looking for SASL authenticated users that make more than MAX_CONNECTIONS per time PERIOD.
+	    Covering the typical attacks on a mail server setup
+	    
+	    ${bold}-p, --period=PERIOD${normal}
+	            A DATE STRING compatible period "1hour", "1minute", etc see man date for more.
+	            Defaults to "1hour"
+	    
+	    ${bold}-m, --max-connections=MAX_CONNECTIONS${normal}
+	            Threshold value for number of connections beyond a report is made.
+	            Defaults to 90.
+	    
+	    ${bold}-d, --dissable-account=MAX_NETWORKS,MAX_UNKNOWNS${normal}
+	            Specifies the boundary conditions for the maximum number of networks and unknown IPs
+	            beyond which the user account is automatically disabled.
+	            A separated e-mail is sent when a user is disabled so you don't miss it.
+	            Dissabling accounts is switched off by default.
+	    
+	    ${bold}-n, --niss=[MASTER_SERVER]${normal}
+	            Disables a NIS account rather than a local account.
+	            It usses SSH and MASTER_SERVER defaults to localhost.
+	    
+	    ${bold}-h, --help${normal}
+	            Prints this help text
+	    
+	${bold}EXAMPLES${normal}
+	    postfix-spam-scan
+	    
+	    postfix-spam-scan -p 30minutes -m 60
+	    
+	    postfix-spam-scan -d 10,10
+	    
+	EOF
 }
 
 

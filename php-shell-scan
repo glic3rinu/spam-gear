@@ -5,41 +5,41 @@ print_help () {
     bold=$(tput bold)
     normal=$(tput sgr0)
     cat <<- EOF
-		
-		${bold}NAME${normal}
-		    ${bold}php-shell-scan${normal} - PHP shells scanner
-		    
-		${bold}SYNOPSIS${normal}
-		    ${bold}php-shell-scan${normal} [ OPTION ]
-		    
-		${bold}DESCRIPTION${normal}
-		    Scans files looking for PHP shells using Clamscan and php-shell-detector, and optionally disables infected files
-		    by moving them to a quarantine directory.
-		    
-		    ${bold}-q, --quarantine=[QUARANTINE_DIR]${normal}
-		            Moves infected files into QUARANTINE_DIR, which defaults to /root/shells
-		    
-		    ${bold}-n, --notify-user=[USERNAME_PATTERN]${normal}
-		            Send a notification mail to the user when a shell has been detected on her home
-		            USERNAME_PATTERN defaults to '^/home/\([^/.]*\)/.*'
-		    
-		    ${bold}-c, --custom-email=EMAIL_PATH${normal}
-		            Optional path to look for a custom email for user notification.
-		            Uses `default_shell_nofification.email` by default.
-		            Environemnt variables available on the email are:
-		                \${EMAIL}, \${USERNAME} and \${SHELLS}
-		    
-		    ${bold}-h, --help${normal}
-		            Prints this help text
-		    
-		${bold}EXAMPLES${normal}
-		    find . -iname '*php' | php-shell-scan
-		    
-		    find . -type f | php-shell-scan -q
-		    
-		    find . -type f | php-shell-scan -q /dev/null
-		    
-		EOF
+	
+	${bold}NAME${normal}
+	    ${bold}php-shell-scan${normal} - PHP shells scanner
+	    
+	${bold}SYNOPSIS${normal}
+	    ${bold}php-shell-scan${normal} [ OPTION ]
+	    
+	${bold}DESCRIPTION${normal}
+	    Scans files looking for PHP shells using Clamscan and php-shell-detector, and optionally disables infected files
+	    by moving them to a quarantine directory.
+	    
+	    ${bold}-q, --quarantine=[QUARANTINE_DIR]${normal}
+	            Moves infected files into QUARANTINE_DIR, which defaults to /root/shells
+	    
+	    ${bold}-n, --notify-user=[USERNAME_PATTERN]${normal}
+	            Send a notification mail to the user when a shell has been detected on her home
+	            USERNAME_PATTERN defaults to '^/home/\([^/.]*\)/.*'
+	    
+	    ${bold}-c, --custom-email=EMAIL_PATH${normal}
+	            Optional path to look for a custom email for user notification.
+	            Uses `default_shell_nofification.email` by default.
+	            Environemnt variables available on the email are:
+	                \${EMAIL}, \${USERNAME} and \${SHELLS}
+	    
+	    ${bold}-h, --help${normal}
+	            Prints this help text
+	    
+	${bold}EXAMPLES${normal}
+	    find . -iname '*php' | php-shell-scan
+	    
+	    find . -type f | php-shell-scan -q
+	    
+	    find . -type f | php-shell-scan -q /dev/null
+	    
+	EOF
 }
 
 
