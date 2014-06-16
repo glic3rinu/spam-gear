@@ -1,6 +1,9 @@
 #!/bin/bash
 
 
+# TODO silent file not found errors but not others, use named pipes?
+# TODO trigger a full /home/user search when detected user infection via email scanning
+
 print_help () {
     bold=$(tput bold)
     normal=$(tput sgr0)
@@ -25,7 +28,7 @@ print_help () {
 	    
 	    ${bold}-c, --custom-email=EMAIL_PATH${normal}
 	            Optional path to look for a custom email for user notification.
-	            Uses `default_shell_nofification.email` by default.
+	            Uses 'default_shell_nofification.email' by default.
 	            Environemnt variables available on the email are:
 	                \${EMAIL}, \${USERNAME} and \${SHELLS}
 	    
@@ -187,6 +190,7 @@ done < <(echo "${removed}" \
 rm -f "${tmp_file}"
 
 if [[ $found = true ]]; then
+    # Show performance metrics if malicious files have been found
     convertsecs() {
         ((h=${1}/3600)) && echo -n "${h} hours "
         ((m=(${1}%3600)/60)) && echo -n "${m} minutes "
@@ -205,6 +209,7 @@ if [[ $found = true ]]; then
 fi
 
 if [[ $NOTIFY = true ]]; then
+    # Send pending user notifications if any
     for email in "${!notifications[@]}"; do
         EMAIL=${email}
         USERNAME=${EMAIL//@*/}

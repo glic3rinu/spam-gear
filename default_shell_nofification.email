@@ -1,4 +1,5 @@
 From: noreply@$(hostname -d)
+bcc: root@$(hostname -d)
 Subject: [$(hostname -d)] Malicious files have been found
 
 Hi $USERNAME,
