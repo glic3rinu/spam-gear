@@ -77,7 +77,7 @@ that exceed `MAX_CONNECTIONS` during the last `SECONDS`. Covering the typical at
 
 ## [php-shell-scan](php-shell-scan)
 
-This is anti PHP shells heavy weaponry. It combines custom regular expressions, Clamscan and [PHP-Shell-Dectector](http://www.shelldetector.com/), all within a single shot. It can disable malicious files by moving them into a `QUARANTINE_DIR`.
+This is anti PHP shells heavy weaponry. It combines custom fingerprints and regular expressions, Clamscan and [PHP-Shell-Dectector](http://www.shelldetector.com/), all within a single shot. It can disable malicious files by moving them into a `QUARANTINE_DIR` as well as alert infected users via customized e-mails.
 
 A rewrite of the [Python version](https://github.com/emposha/Shell-Detector) of PHP-Shell-Dectector is included in this package ([php-shell-detector](php-shell-detector)). Motivated because the original implementation just crashed when testing it through our quarantine directory, the output was hard to parse, it had no support for inspecting specific files (only dirs). And guess what? it turned out to be x10 faster than the original implementation ;).
 
@@ -88,6 +88,16 @@ A rewrite of the [Python version](https://github.com/emposha/Shell-Detector) of 
 #### Options
     -q, --quarantine=[QUARANTINE_DIR]
         Moves infected files into QUARANTINE_DIR, which defaults to /root/shells
+    
+    -n, --notify-user=[USERNAME_PATTERN]
+            Send a notification mail to the user when a shell has been detected on her home
+            USERNAME_PATTERN defaults to '^/home/\([^/.]*\)/.*'
+    
+    -c, --custom-email=EMAIL_PATH
+            Optional path to look for a custom email for user notification.
+            Uses `default_shell_nofification.email` by default.
+            Environemnt variables available on the email are:
+                ${EMAIL}, ${USERNAME} and ${SHELLS}
     
     -h, --help
         Shows help text

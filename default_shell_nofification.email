@@ -1,0 +1,20 @@
+From: noreply@$(hostname -d)
+Subject: [$(hostname -d)] Malicious files have been found
+
+Hi $USERNAME,
+This is an automatic message.
+
+Malicious files have been found into your home directory during a rutine scanning
+of the web server. An automatic disinfection has been performed.
+
+The files that have been found and ELIMINATED are:
+
+$SHELLS
+
+
+Those file do not supose any further threat to your website. However, we encourage
+you to take additional steps in order to better secure you web application.
+
+
+Please contact us if you have any questions.
+support@$(hostname -d)

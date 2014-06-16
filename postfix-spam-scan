@@ -66,16 +66,14 @@ while true; do
                 echo "${PERIOD}: Unsuported DATE STRING" >&2
                 exit 2
             fi
-            shift; shift
-            ;;
+            shift; shift ;;
         -m|--max-connections)
             MAX_CONNECTIONS=${2}
             if ! [[ $MAX_CONNECTIONS =~ ^[0-9]+$ ]]; then
                 echo "${MAX_CONNECTIONS}: Is not a number" >&2
                 exit 2
             fi
-            shift; shift
-            ;;
+            shift; shift ;;
         -d|--dissable-acount)
             disable=true
             MAX_NETS=${2//,*/}
@@ -84,8 +82,7 @@ while true; do
                 echo "${MAX_NETS} or ${MAX_UNKNOWNS}: Are not numbers" >&2
                 exit 2
             fi
-            shift; shift
-            ;;
+            shift; shift ;;
         -n|--nis)
             nis=true;
             if [[ "${2}" != "" && "${2}" != '-*' ]]; then
@@ -113,7 +110,7 @@ found=false
 
 
 while read line; do
-    current=($(echo "${line}"))
+    current=( ${line} )
     if [[ ${current[0]} != "" && ${current[0]} -ge $MAX_CONNECTIONS ]]; then
         userlogs=$(echo "${log}" | grep "sasl_username=${current[1]}")
         logentry=$(echo "${userlogs}" | head -n1)

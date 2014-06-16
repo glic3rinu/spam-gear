@@ -33,7 +33,7 @@ sent=false
 
 # USER based P=local
 while read line; do
-    current=($(echo "$line"))
+    current=( ${line} )
     if [[ ${current[0]} != "" && ${current[0]} -gt $MAX_CONNECTIONS ]]; then
         logentry=$(echo "$log" | grep "U=${current[1]} "|head -n1)
         [ $sent = false ] && echo -e "${message}\n" && sent=true
@@ -44,7 +44,7 @@ done < <(echo "$log" | grep 'U=' | awk -F'U=' {'print $2'} | awk {'print $1'} | 
 
 # HOST based P=smtp
 while read line; do
-    current=($(echo "$line"))
+    current=( ${line} )
     if [[ ${current[0]} != "" && ${current[0]} -gt $MAX_CONNECTIONS ]]; then
         logentry=$(echo "$log" | grep "\(${current[1]}\)" | head -n1)
         [ $sent = false ] && echo "${message}\n" && sent=true

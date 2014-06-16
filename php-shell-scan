@@ -1,7 +1,5 @@
 #!/bin/bash
 
-# TODO notify user and custom message file
-# TODO add shell name
 
 print_help () {
     bold=$(tput bold)
@@ -21,14 +19,15 @@ print_help () {
 		    ${bold}-q, --quarantine=[QUARANTINE_DIR]${normal}
 		            Moves infected files into QUARANTINE_DIR, which defaults to /root/shells
 		    
-		    ${bold}-n, --notify-user=[MAIL_PATTERN]${normal}
+		    ${bold}-n, --notify-user=[USERNAME_PATTERN]${normal}
 		            Send a notification mail to the user when a shell has been detected on her home
-		            MAIL_PATTERN defaults to "sed s#^/home/\(.*\)/.*#\1@$(hostname -d)#"
+		            USERNAME_PATTERN defaults to '^/home/\([^/.]*\)/.*'
 		    
 		    ${bold}-c, --custom-email=EMAIL_PATH${normal}
 		            Optional path to look for a custom email for user notification.
+		            Uses `default_shell_nofification.email` by default.
 		            Environemnt variables available on the email are:
-		                $${USERNAME}, $${DISABLED_SHELLS}, $${INFECTED_FILES} and $${INFECTED_FILES_PATTERN}
+		                \${EMAIL}, \${USERNAME} and \${SHELLS}
 		    
 		    ${bold}-h, --help${normal}
 		            Prints this help text
@@ -45,13 +44,35 @@ print_help () {
 
 
 QUARANTINE=false
+QUARANTINE_DIR='/root/shells'
+NOTIFY=false
+USERNAME_PATTERN='^/home/\([^/.]*\)/.*'
+EMAIL_PATH=$(dirname $0)/default_shell_nofification.email
 while true; do
     case $1 in
         -q|--quarantine)
             QUARANTINE=true
+            if [[ "${2}" != "" && "${2}" != '-*' ]]; then
+                QUARANTINE_DIR="${2}"
+                shift
+            fi
+            [[ ! -e "${QUARANTINE_DIR}" ]] &&
+                mkdir "${QUARANTINE_DIR}"
+            shift ;;
+        -n|--notify-user)
+            NOTIFY=true
+            if [[ "${2}" != "" && "${2}" != '-*' ]]; then
+                USERNAME_PATTERN="${2}"
+                shift
+            fi
+            shift ;;
+        -c|--custom-email)
+            EMAIL_PATH=${2}
+            if [[ ! -e "${EMAIL_PATH}" ]]; then
+                echo "${EMAIL_PATH}: Does not exists" >&2
+                exit 2
+            fi
             shift
-            QUARANTINE_DIR=${1:-'/root/shells'}
-            [[ ! -e "${QUARANTINE_DIR}" ]] && mkdir "${QUARANTINE_DIR}"
             ;;
         -h|--help)
             print_help
@@ -70,40 +91,64 @@ done
 
 tmp_file=$(mktemp)
 found=false
+declare -A notifications
 
 
-common_time=$(date +%s)
+function process_shell () {
+    local filename=$1
+    local delete=${2:-true}
+    local email=$(echo "${filename}" | sed "s#${USERNAME_PATTERN}#\1@$(hostname -d)#")
+    found=true
+    if [[ $QUARANTINE = true && $delete = true ]]; then
+        mv "${filename}" "${QUARANTINE_DIR}"
+    fi
+    notifications[${email}]="${notifications[${email}]}\n${filename}"
+}
+
+
+FINGERPRINTS=$(cat <<- EOF
+@error_reporting(0); @ini_set('error_log',NULL); @ini_set('log_errors',0);
+7X1re9s2z/Dn9VcwmjfZq+PYTtu7s2MnaQ5t2jTpcugp6ePJsmxrkS1PkuNkWf77C4C
+\$x74[41].\$x74[71].\$x74[10].\$x74[96].\$x74[12].\$x
+function Slowloris(\$method="GET", \$url="/", \$sleep=3){
+copy(\$_FILES['ufile']['tmp_name'],\$dir.chr(47).\$_FILES['ufile']['name'])) \$out
+r='#000000'>Change WHMCS Info<br>Patch Control Panel : [patch]/admin<br>Path
+EOF
+)
+
+
+regex_time=$(date +%s)
 while read filename; do
     if [[ "${filename}" != *php ]]; then
         # Clamscan is not able to read from stdin, that's why a tmp file is used
         echo "${filename}" >> "${tmp_file}"
         continue
     fi
-    # Lookup for common PHP shell patterns
-    COMMON1="(@error_reporting\(0\); @ini_set\('error_log',NULL\); @ini_set\('log_errors',0\);|7X1re9s2z/Dn9VcwmjfZq\+PYTtu7s2MnaQ5t2jTpcugp6ePJsmxrkS1PkuNkWf77C4C)"
-    COMMON2='$x74\[41\].$x74\[71\].$x74\[10\].$x74\[96\].$x74\[12\].$x'
-    if [[ $(egrep "${COMMON1}" "${filename}" 2> /dev/null) ]]; then
-        found=true
-        [[ $QUARANTINE = true ]] &&
-            mv "${filename}" "${QUARANTINE_DIR}"
-        echo "${filename} [COMMON]"
-    elif [[ $(grep "${COMMON2}" "${filename}" 2> /dev/null) ]]; then
-        found=true
-        [[ $QUARANTINE = true ]] &&
-            mv "${filename}" "${QUARANTINE_DIR}"
-        echo "${filename} [COMMON]"
+    # Lookup for common PHP shell fingerprints
+    if [[ $(grep -l -F "${FINGERPRINTS}" "${filename}" 2> /dev/null) ]]; then
+        process_shell "${filename}"
+        echo "${filename} [REGEX] [PHP-Shell]"
+    # Common PHP shell pattern
+    el
+    if [[ $(grep -l -F "@ini_set('error_log'" "${filename}" 2> /dev/null) ]]; then
+        if [[ $(grep -l -F "@ini_set('log_errors'" "${filename}" 2> /dev/null) ]]; then
+            if [[ $(grep -l -F "opendir(" "${filename}" 2> /dev/null) ]]; then
+                process_shell "${filename}"
+                echo "${filename} [REGEX] [PHP-Shell2]"
+            fi
+        fi
     else
         # Cleanup possible backdoors
         BACKDOOR1="<?php\s*eval\s*(\s*base64_decode\s*(\s*\$_POST\['[0-z]*'\]));?>"
         BACKDOOR2='eval\s*(\s*base64_decode.*_POST'
-        if [[ $(grep "${BACKDOOR1}" "${filename}" 2> /dev/null) ]]; then
-            found=true
+        if [[ $(grep -l "${BACKDOOR1}" "${filename}" 2> /dev/null) ]]; then
+            process_shell "${filename}" false
             [[ $QUARANTINE = true ]] && 
                 sed -i "s/${BACKDOOR1}//g" "${filename}" 2> /dev/null
-            echo "${filename} [BACKDOOR]"
-        elif [[ $(grep "${BACKDOOR2}" "${filename}" 2> /dev/null) ]]; then
-            found=true
-            echo "${filename} [NON-CLEANED BACKDOOR]"
+            echo "${filename} [REGEX] [PHP-Backdoor]"
+        elif [[ $(grep -l "${BACKDOOR2}" "${filename}" 2> /dev/null) ]]; then
+            process_shell "${filename}" false
+            echo "${filename} [REGEX] [PHP-Backdoor] [NON-CLEANED]"
         elif [[ "${filename}" != "" ]]; then
             echo "${filename}" >> "${tmp_file}"
         fi
@@ -114,26 +159,26 @@ done
 clam_time=$(date +%s)
 removed=""
 if [[ -s "${tmp_file}" ]]; then
-    while read filename; do
-        found=true
-        [[ $QUARANTINE = true ]] &&
-            mv "${filename}" "${QUARANTINE_DIR}"
-        echo "${filename} [CLAMSCAN]"
+    while read line; do
+        current=( ${line} )
+        filename=${current[0]/%:/}
+        process_shell "${filename}"
+        echo "${filename} [CLAMSCAN] [${current[1]}]"
         removed="${removed}\n${filename}"
-    done < <(clamscan -i -f "${tmp_file}" 2>&1 | grep FOUND | cut -d':' -f1)
+    done < <(clamscan -i -f "${tmp_file}" 2>&1 | grep FOUND)
 fi
 
 
 detector_time=$(date +%s)
 while read line; do
-    found=true
-    filename=$(echo "${line}" | awk {'print $1'})
+    current=( ${line} )
+    filename=${current[0]}
     if [[ $(echo "${line}" | grep ' INFECTED-FILE$') ]]; then
-        echo "${filename} [NON-CLEANED BACKDOOR]"
+        process_shell "${filename}" false
+        echo "${filename} [${current[1]}] [NON-CLEANED]"
     else
-        [[ $QUARANTINE = true ]] &&
-            mv "${filename}" "${QUARANTINE_DIR}"
-        echo "${filename} [DETECTOR]"
+        process_shell "${filename}"
+        echo "${filename} [DETECTOR] [${current[1]}]"
     fi
 done < <(echo "${removed}" \
         | grep -v -x -f - "${tmp_file}" \
@@ -148,14 +193,26 @@ if [[ $found = true ]]; then
         ((m=(${1}%3600)/60)) && echo -n "${m} minutes "
         ((s=${1}%60)) && echo -n "${s} seconds"
     }
-    common_time=$(($(date +%s) - $common_time))
+    regex_time=$(($(date +%s) - $regex_time))
     clam_time=$(($(date +%s) - $clam_time))
     detector_time=$(($(date +%s) - $detector_time))
-    total_time=$(($clam_time+$common_time+$detector_time))
+    total_time=$(($clam_time+$regex_time+$detector_time))
     echo "" >&2
     echo "- - - - - - - - - - - - - - - - - - - - - - - - - -" >&2
-    echo "COMMON TIME: $(convertsecs $common_time)" >&2
+    echo "REGEX TIME: $(convertsecs $regex_time)" >&2
     echo "CLAM TIME: $(convertsecs $clam_time)" >&2
     echo "DETECTOR TIME: $(convertsecs $detector_time)" >&2
     echo "TOTAL TIME: $(convertsecs $total_time)" >&2
+fi
+
+if [[ $NOTIFY = true ]]; then
+    for email in "${!notifications[@]}"; do
+        EMAIL=${email}
+        USERNAME=${EMAIL//@*/}
+        SHELLS=$(echo -e "${notifications[${email}]}")
+        EMAIL=$(cat "${EMAIL_PATH}")
+        EMAIL="echo \"${EMAIL}\""
+        EMAIL="$(eval "${EMAIL}")"
+        echo "${EMAIL}"
+    done
 fi
