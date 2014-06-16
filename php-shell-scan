@@ -212,7 +212,7 @@ if [[ $NOTIFY = true ]]; then
     # Send pending user notifications if any
     for EMAIL in "${!notifications[@]}"; do
         USERNAME=${EMAIL//@*/}
-        SHELLS=$(echo -e "${notifications[${email}]}")
+        SHELLS=$(echo -e "${notifications[${EMAIL}]}")
         email=$(cat "${EMAIL_PATH}")
         email="echo \"${email}\""
         email="$(eval "${email}")"
