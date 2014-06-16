@@ -152,7 +152,7 @@ while read filename; do
                 backdoor_found=true
                 process_shell "${filename}" false
                 [[ $QUARANTINE = true ]] && 
-                    sed -i "s/${BACKDOOR}//g" "${filename}" 2> /dev/null
+                    sed -i "s/${backdoor}//g" "${filename}" 2> /dev/null
                 echo "${filename} [REGEX] [PHP-Backdoor]"
             fi
         done < <(echo "${BACKDOORS}")
