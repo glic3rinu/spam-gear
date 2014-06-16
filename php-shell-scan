@@ -129,8 +129,7 @@ while read filename; do
         process_shell "${filename}"
         echo "${filename} [REGEX] [PHP-Shell]"
     # Common PHP shell pattern
-    el
-    if [[ $(grep -l -F "@ini_set('error_log'" "${filename}" 2> /dev/null) ]]; then
+    elif [[ $(grep -l -F "@ini_set('error_log'" "${filename}" 2> /dev/null) ]]; then
         if [[ $(grep -l -F "@ini_set('log_errors'" "${filename}" 2> /dev/null) ]]; then
             if [[ $(grep -l -F "opendir(" "${filename}" 2> /dev/null) ]]; then
                 process_shell "${filename}"
