@@ -210,13 +210,12 @@ fi
 
 if [[ $NOTIFY = true ]]; then
     # Send pending user notifications if any
-    for email in "${!notifications[@]}"; do
-        EMAIL=${email}
+    for EMAIL in "${!notifications[@]}"; do
         USERNAME=${EMAIL//@*/}
         SHELLS=$(echo -e "${notifications[${email}]}")
-        EMAIL=$(cat "${EMAIL_PATH}")
-        EMAIL="echo \"${EMAIL}\""
-        EMAIL="$(eval "${EMAIL}")"
-        echo "${EMAIL}"
+        email=$(cat "${EMAIL_PATH}")
+        email="echo \"${email}\""
+        email="$(eval "${email}")"
+        echo "${email}" | sendmail -i -t
     done
 fi
