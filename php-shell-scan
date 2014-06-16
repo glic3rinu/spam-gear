@@ -147,8 +147,8 @@ while read filename; do
     else
         # Cleanup possible backdoors
         backdoor_found=false
-        while read backdor; do
-            if [[ $(grep -l "${backdor}" "${filename}" 2> /dev/null) ]]; then
+        while read -r backdoor; do
+            if [[ $(grep -l "${backdoor}" "${filename}" 2> /dev/null) ]]; then
                 backdoor_found=true
                 process_shell "${filename}" false
                 [[ $QUARANTINE = true ]] && 
