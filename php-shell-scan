@@ -55,7 +55,7 @@ while true; do
     case $1 in
         -q|--quarantine)
             QUARANTINE=true
-            if [[ "${2}" != "" && "${2}" != '-*' ]]; then
+            if [[ "${2}" != "" && "${2}" != -* ]]; then
                 QUARANTINE_DIR="${2}"
                 shift
             fi
@@ -64,7 +64,7 @@ while true; do
             shift ;;
         -n|--notify-user)
             NOTIFY=true
-            if [[ "${2}" != "" && "${2}" != '-*' ]]; then
+            if [[ "${2}" != "" && "${2}" != -* ]]; then
                 USERNAME_PATTERN="${2}"
                 shift
             fi

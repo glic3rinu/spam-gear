@@ -1,5 +1,6 @@
 From: noreply@$(hostname -d)
-bcc: root@$(hostname -d)
+To: $EMAIL
+Bcc: root@$(hostname -d)
 Subject: [$(hostname -d)] Malicious files have been found
 
 Hi $USERNAME,

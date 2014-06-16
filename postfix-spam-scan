@@ -81,7 +81,7 @@ while true; do
             shift; shift ;;
         -n|--nis)
             nis=true;
-            if [[ "${2}" != "" && "${2}" != '-*' ]]; then
+            if [[ "${2}" != "" && "${2}" != -* ]]; then
                 NIS_SERVER="${2}"
                 shift
             fi
