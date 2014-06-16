@@ -159,8 +159,9 @@ while read filename; do
                 echo "${filename} [REGEX] [PHP-Backdoor]"
             fi
         done < <(echo "${BACKDOORS}")
-        BACKDOOR_REGEX='eval\s*(\s*base64_decode.*_POST'
-        if [[ backdoor_found = false ]]; then
+        if [[ $backdoor_found = false ]]; then
+            # Classical backdoor pattern
+            BACKDOOR_REGEX='eval\s*(\s*base64_decode.*_POST'
             if [[ $(grep -l "${BACKDOOR_REGEX}" "${filename}" 2> /dev/null) ]]; then
                 process_shell "${filename}" false
                 echo "${filename} [REGEX] [PHP-Backdoor] [NON-CLEANED]"
