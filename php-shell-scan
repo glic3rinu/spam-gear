@@ -154,7 +154,7 @@ while read filename; do
                 [[ $QUARANTINE = true ]] && 
                     sed -i "s/${BACKDOOR}//g" "${filename}" 2> /dev/null
                 echo "${filename} [REGEX] [PHP-Backdoor]"
-        done < <(echo "${BACKDOORS}"
+        done < <(echo "${BACKDOORS}")
         BACKDOOR_REGEX='eval\s*(\s*base64_decode.*_POST'
         if [[ backdoor_found = false ]]; then
             if [[ $(grep -l "${BACKDOOR_REGEX}" "${filename}" 2> /dev/null) ]]; then
