@@ -16,8 +16,9 @@ print_help () {
 	    ${bold}php-shell-scan${normal} [ OPTION ]
 	    
 	${bold}DESCRIPTION${normal}
-	    Scans files looking for PHP shells using Clamscan and php-shell-detector, and optionally disables infected files
-	    by moving them to a quarantine directory.
+	    Scans files looking for PHP shells using Clamscan, php-shell-detector and custom fingerprints
+	    and regular expressions. It can optionally disable infected files by moving them to a quarantine directory
+	    and send notifactions to infected users.
 	    
 	    ${bold}-q, --quarantine=[QUARANTINE_DIR]${normal}
 	            Moves infected files into QUARANTINE_DIR, which defaults to /root/shells
