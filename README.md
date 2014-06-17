@@ -77,9 +77,9 @@ that exceed `MAX_CONNECTIONS` during the last `SECONDS`. Covering the typical at
 
 ## [php-shell-scan](php-shell-scan)
 
-This is anti PHP shells heavy weaponry. It combines custom fingerprints and regular expressions, Clamscan and [PHP-Shell-Dectector](http://www.shelldetector.com/), all within a single shot. It can disable malicious files by moving them into a `QUARANTINE_DIR` and remove common PHP backdooring code as well as alert infected users via customized e-mails.
+This is anti PHP shells heavy weaponry. It combines custom fingerprints and regular expressions, Clamscan and [PHP-Shell-Dectector](http://www.shelldetector.com/), all within one single shot. It can disable malicious files by moving them into a `QUARANTINE_DIR` and remove common PHP backdooring code as well as alert infected users via customized e-mails.
 
-A rewrite of the [Python version](https://github.com/emposha/Shell-Detector) of PHP-Shell-Dectector is included in this package ([php-shell-detector](php-shell-detector)). Motivated because the original implementation just crashed when testing it through our quarantine directory, the output was hard to parse, it had no support for inspecting specific files (only dirs). And guess what? it turned out to be x10 faster than the original implementation ;).
+A rewrite of the [Python version](https://github.com/emposha/Shell-Detector) of PHP-Shell-Dectector is included in this package ([php-shell-detector](php-shell-detector)). Motivated because the original implementation just crashed when tested it through our PHP shells collection, the output was hard to parse and it had no support for inspecting specific files (only dirs). And guess what? it turned out to be x10 faster than the original implementation ;).
 
 
 #### Usage
@@ -206,14 +206,18 @@ This is how our crontabs look like
 # Web server crontab
 
 PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/root/spam-gear
-0    * * * * exim-spam-scan 3600 60 | emergency-mail 2000
-30   5 * * * find /home/pangea/ -mtime -2 -iname "*php" | php-shell-scan -q
-*/10 * * * * { php-spam-legacy 10 10 && php-spam 500; } | php-shell-scan -q
-0    0 * * * php-shell-detector updatedb
+0    * * * *   exim-spam-scan 3600 60 | emergency-mail 2000
+*/10 * * * *   { php-spam-legacy 10 10 && php-spam 500; } | php-shell-scan -q
+0    0 * * *   php-shell-detector updatedb
+
+# For us this is very expensive because our home is mounted from a SAN and
+# transversal reads of the whole FS invalidates most of the FS cache :(
+php_shell_scan="php-shell-scan -q -n '^/home/pangea/\([^/.]*\)/.*' -c /root/spam-gear/user_alert.email"
+30   2 * * 6   find /home/pangea -type f | ${php_shell_scan}
+30   5 * * 0-5 find /home/pangea/ -mtime -2 -iname "*php" | ${php_shell_scan}
 ```
 
 ```bash
-
 # Mail server crontab
 
 PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/root/spam-gear
