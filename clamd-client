@@ -310,9 +310,12 @@ class ClamdNetworkSocket(_ClamdGeneric):
 
 
 def analyze(queue):
+    clamd = ClamdUnixSocket()
+    clamd.ping()
     while True:
         filename = queue.get()
         if filename == "__TERMINATE__":
+            queue.task_done()
             break
         result = clamd.multiscan_file(filename)
         if result:
@@ -327,10 +330,8 @@ def analyze(queue):
 
 
 if __name__ == "__main__":
-    clamd = ClamdUnixSocket()
-    clamd.ping()
 #    clamd.reload()
-    num_threads = 4
+    num_threads = sys.argv[1] if len(sys.argv) == 2 else 2
     queue = Queue()
     for i in range(num_threads):
         worker = Thread(target=analyze, args=(queue,))
@@ -341,6 +342,6 @@ if __name__ == "__main__":
         filename = filename.strip()
         queue.put(filename)
     
-    for i in range(num_threads):
+    for i in range(num_threads*2):
         queue.put("__TERMINATE__")
     queue.join()
