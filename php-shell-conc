@@ -4,7 +4,8 @@
 # TODO trigger a full /home/user search when detected user infection via email scanning
 # TODO mktemp for notifications if notfy=true
 # TODO ctrl+c doesn't fucking work anymore
-# TODO rewrite regex in python 17 HOURS IS NOT ACCEPTABLE
+# TODO rewrite regex in python 17 HOURS IS NOT ACCEPTABLE http://stackoverflow.com/questions/15789228/how-to-save-both-matching-and-non-matching-from-grep
+#       http://unix.stackexchange.com/questions/21212/how-can-i-redirect-matching-lines-to-a-file-and-non-matching-lines-to-a-differe
 
 print_help () {
     bold=$(tput bold)
