@@ -3,6 +3,8 @@
 # TODO silent file not found errors but not others, use named pipes?
 # TODO trigger a full /home/user search when detected user infection via email scanning
 # TODO mktemp for notifications if notfy=true
+# TODO ctrl+c doesn't fucking work anymore
+# TODO rewrite regex in python 17 HOURS IS NOT ACCEPTABLE
 
 print_help () {
     bold=$(tput bold)
