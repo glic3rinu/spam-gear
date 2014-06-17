@@ -1,0 +1,245 @@
+#!/bin/bash
+
+
+# TODO silent file not found errors but not others, use named pipes?
+# TODO trigger a full /home/user search when detected user infection via email scanning
+
+print_help () {
+    bold=$(tput bold)
+    normal=$(tput sgr0)
+    cat <<- EOF
+	
+	${bold}NAME${normal}
+	    ${bold}php-shell-scan${normal} - PHP shells scanner
+	    
+	${bold}SYNOPSIS${normal}
+	    ${bold}php-shell-scan${normal} [ OPTION ]
+	    
+	${bold}DESCRIPTION${normal}
+	    Scans files looking for PHP shells using Clamscan and php-shell-detector, and optionally disables infected files
+	    by moving them to a quarantine directory.
+	    
+	    ${bold}-q, --quarantine=[QUARANTINE_DIR]${normal}
+	            Moves infected files into QUARANTINE_DIR, which defaults to /root/shells
+	    
+	    ${bold}-n, --notify-user=[USERNAME_PATTERN]${normal}
+	            Send a notification mail to the user when a shell has been detected on her home
+	            USERNAME_PATTERN defaults to '^/home/\([^/.]*\)/.*'
+	    
+	    ${bold}-c, --custom-email=EMAIL_PATH${normal}
+	            Optional path to look for a custom email for user notification.
+	            Uses 'default_shell_nofification.email' by default.
+	            Environemnt variables available on the email are:
+	                \${EMAIL}, \${USERNAME} and \${SHELLS}
+	    
+	    ${bold}-h, --help${normal}
+	            Prints this help text
+	    
+	${bold}EXAMPLES${normal}
+	    find . -iname '*php' | php-shell-scan
+	    
+	    find . -type f | php-shell-scan -q
+	    
+	    find . -type f | php-shell-scan -q /dev/null
+	    
+	EOF
+}
+
+
+QUARANTINE=false
+QUARANTINE_DIR='/root/shells'
+NOTIFY=false
+USERNAME_PATTERN='^/home/\([^/.]*\)/.*'
+EMAIL_PATH=$(dirname $0)/default_shell_nofification.email
+while true; do
+    case $1 in
+        -q|--quarantine)
+            QUARANTINE=true
+            if [[ "${2}" != "" && "${2}" != -* ]]; then
+                QUARANTINE_DIR="${2}"
+                shift
+            fi
+            [[ ! -e "${QUARANTINE_DIR}" ]] &&
+                mkdir "${QUARANTINE_DIR}"
+            shift ;;
+        -n|--notify-user)
+            NOTIFY=true
+            if [[ "${2}" != "" && "${2}" != -* ]]; then
+                USERNAME_PATTERN="${2}"
+                shift
+            fi
+            shift ;;
+        -c|--custom-email)
+            EMAIL_PATH=${2}
+            if [[ ! -e "${EMAIL_PATH}" ]]; then
+                echo "${EMAIL_PATH}: Does not exists" >&2
+                exit 2
+            fi
+            shift
+            ;;
+        -h|--help)
+            print_help
+            exit 0
+            ;;
+        -*)
+            echo "$0: Unrecognized option $1" >&2
+            exit 2
+            ;;
+        *)
+            break
+            ;;
+    esac
+done
+
+
+pipe1=$(mktemp -u)
+pipe2=$(mktemp -u)
+mkfifo -m 600 "$pipe1"
+mkfifo -m 600 "$pipe2"
+trap 'rm -f "$pipe1"; rm -f "$pipe2";' EXIT INT TERM HUP
+
+found=125
+declare -A notifications
+total_time=$(date +%s)
+
+function process_shell () {
+    local filename=$1
+    local delete=${2:-true}
+    local email=$(echo "${filename}" | sed "s#${USERNAME_PATTERN}#\1@$(hostname -d)#")
+    found=126
+    if [[ $QUARANTINE = true && $delete = true ]]; then
+        mv "${filename}" "${QUARANTINE_DIR}"
+    fi
+    notifications[${email}]="${notifications[${email}]}\n${filename}"
+}
+
+
+FINGERPRINTS=$(cat <<- EOF
+@error_reporting(0); @ini_set('error_log',NULL); @ini_set('log_errors',0);
+7X1re9s2z/Dn9VcwmjfZq+PYTtu7s2MnaQ5t2jTpcugp6ePJsmxrkS1PkuNkWf77C4C
+\$x74[41].\$x74[71].\$x74[10].\$x74[96].\$x74[12].\$x
+function Slowloris(\$method="GET", \$url="/", \$sleep=3){
+copy(\$_FILES['ufile']['tmp_name'],\$dir.chr(47).\$_FILES['ufile']['name'])) \$out
+r='#000000'>Change WHMCS Info<br>Patch Control Panel : [patch]/admin<br>Path
+EOF
+)
+
+# Regex used for grep (finding) and sed (cleaning)
+BACKDOORS=$(cat <<- EOF
+<?php\s*eval\s*(\s*base64_decode\s*(\s*\$_POST\['[0-z]*'\]));?>
+<?php\s*if(md5(\$_COOKIE\['_wp_debugger'\])==\"[0-z]*\"){\s*eval(base64_decode(\$_POST\['file'\]));\s*exit;\s*}\s*?>
+EOF
+)
+
+
+function custom_regex () {
+    while read filename; do
+        if [[ "${filename}" != *php ]]; then
+            # Clamscan is not able to read from stdin, that's why a tmp file is used
+            echo "${filename}" >&3
+            continue
+        fi
+        # Lookup for common PHP shell fingerprints
+        if [[ $(grep -l -F "${FINGERPRINTS}" "${filename}" 2> /dev/null) ]]; then
+            process_shell "${filename}"
+            echo "${filename} [REGEX] [PHP-Shell]"
+        # Common PHP shell pattern
+        elif [[ $(grep -l -F "@ini_set('error_log'" "${filename}" 2> /dev/null) ]]; then
+            if [[ $(grep -l -F "@ini_set('log_errors'" "${filename}" 2> /dev/null) ]]; then
+                if [[ $(grep -l -F "opendir(" "${filename}" 2> /dev/null) ]]; then
+                    process_shell "${filename}"
+                    echo "${filename} [REGEX] [PHP-Shell2]"
+                fi
+            fi
+        else
+            # Cleanup possible backdoors
+            backdoor_found=false
+            while read -r backdoor; do
+                if [[ $(grep -l "${backdoor}" "${filename}" 2> /dev/null) ]]; then
+                    backdoor_found=true
+                    process_shell "${filename}" false
+                    [[ $QUARANTINE = true ]] && 
+                        sed -i "s/${backdoor}//g" "${filename}" 2> /dev/null
+                    echo "${filename} [REGEX] [PHP-Backdoor]"
+                fi
+            done < <(echo "${BACKDOORS}")
+            if [[ $backdoor_found = false ]]; then
+                # Classical backdoor pattern
+                BACKDOOR_REGEX='eval\s*(\s*base64_decode.*_POST'
+                if [[ $(grep -l "${BACKDOOR_REGEX}" "${filename}" 2> /dev/null) ]]; then
+                    process_shell "${filename}" false
+                    echo "${filename} [REGEX] [PHP-Backdoor] [NON-CLEANED]"
+                elif [[ "${filename}" != "" ]]; then
+                    echo "${filename}" >&3
+                fi
+            fi
+        fi;
+    done
+    exit $found
+}
+
+
+function clamscan () {
+    while read line; do
+        current=( ${line} )
+        filename=${current[0]}
+        if [[ "${line}" != *] ]]; then
+            echo "${line}" >&3
+        else
+            process_shell "${filename}"
+            echo "${filename} [CLAMAV] ${current[1]}"
+        fi
+    done < <(cat - | $(dirname $0)/clamd-client 2> /dev/null)
+    exit $found
+}
+
+
+function php_shell_detector () {
+    while read line; do
+        current=( ${line} )
+        filename=${current[0]}
+        if [[ "${line}" == '*INFECTED-FILE' ]]; then
+            process_shell "${filename}" false
+            echo "${filename} [${current[1]}] [NON-CLEANED]"
+        else
+            process_shell "${filename}"
+            echo "${filename} [DETECTOR] ${current[1]}"
+        fi
+    done < <(cat - | $(dirname $0)/php-shell-detector)
+}
+
+
+custom_regex < <(cat -) 3> $pipe1 &
+clamscan < $pipe1 3> $pipe2 &
+php_shell_detector < $pipe2
+
+detector_found=$found
+wait %1
+regex_found=$?
+wait %2
+clam_found=$?
+
+
+if [[ $detector_found -eq 126 || $regex_found -eq 126 || $clam_found -eq 126 ]]; then
+    # Show performance metrics if malicious files have been found
+    convertsecs() {
+        ((h=${1}/3600)) && echo -n "${h} hours "
+        ((m=(${1}%3600)/60)) && echo -n "${m} minutes "
+        ((s=${1}%60)) && echo -n "${s} seconds"
+    }
+    total_time=$(($(date +%s) - $total_time))
+    echo "" >&2
+    echo "TOTAL TIME: $(convertsecs $total_time)" >&2
+fi
+
+if [[ $NOTIFY = true ]]; then
+    # Send pending user notifications if any
+    for EMAIL in "${!notifications[@]}"; do
+        USERNAME=${EMAIL//@*/}
+        SHELLS=$(echo -e "${notifications[${EMAIL}]}")
+        email=$(cat "${EMAIL_PATH}")
+        email="echo \"${email}\""
+        email="$(eval "${email}")"
+        echo "${email}" | sendmail -i -t
+    done
+fi
