@@ -8,6 +8,8 @@ import socket
 import struct
 import base64
 import sys
+from threading import Thread
+from Queue import Queue
 
 
 class BufferTooLongError(ValueError):
@@ -307,12 +309,9 @@ class ClamdNetworkSocket(_ClamdGeneric):
         return
 
 
-if __name__ == "__main__":
-    clamd = ClamdUnixSocket()
-    clamd.ping()
-#    clamd.reload()
-    for filename in sys.stdin.readlines():
-        filename = filename.strip()
+def analyze(queue):
+    while True:
+        filename = queue.get()
         result = clamd.scan_file(filename)
         if result:
             for filename, result in result.iteritems():
@@ -322,3 +321,22 @@ if __name__ == "__main__":
                     print filename, "[%s]" % result[1]
         else:
             print filename
+        queue.task_done()
+
+
+if __name__ == "__main__":
+    clamd = ClamdUnixSocket()
+    clamd.ping()
+#    clamd.reload()
+    num_threads = 4
+    queue = Queue()
+    for i in range(num_threads):
+        worker = Thread(target=analyze, args=(queue,))
+        worker.setDaemon(True)
+        worker.start()
+    
+    for filename in sys.stdin.readlines():
+        filename = filename.strip()
+        queue.put(filename)
+    
+    queue.join()
