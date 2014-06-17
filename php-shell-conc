@@ -176,7 +176,7 @@ function custom_regex () {
         fi;
     done
     exit $found
-} 3> $pipe1
+}
 
 
 function clamscan () {
@@ -191,7 +191,7 @@ function clamscan () {
         fi
     done < <(cat - | $(dirname $0)/clamd-client 2> /dev/null)
     exit $found
-} 3> $pipe2
+}
 
 
 function php_shell_detector () {
@@ -209,8 +209,8 @@ function php_shell_detector () {
 }
 
 
-custom_regex < <(cat -) &
-clamscan < $pipe1 &
+custom_regex < <(cat -) 3> $pipe1 &
+clamscan < $pipe1 3> $pipe2 &
 php_shell_detector < $pipe2
 
 detector_found=$found
