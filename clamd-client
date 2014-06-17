@@ -342,6 +342,6 @@ if __name__ == "__main__":
         filename = filename.strip()
         queue.put(filename)
     
-    for i in range(num_threads*2):
+    for i in range(num_threads):
         queue.put("__TERMINATE__")
     queue.join()
