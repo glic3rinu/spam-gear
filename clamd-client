@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-# This is a copy of http://xael.org/norman/python/pyclamd/
+# This is mainly stolen from http://xael.org/norman/python/pyclamd/
 
 __version__ = "0.3.4"
 

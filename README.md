@@ -77,9 +77,13 @@ that exceed `MAX_CONNECTIONS` during the last `SECONDS`. Covering the typical at
 
 ## [php-shell-scan](php-shell-scan)
 
-This is anti PHP shells heavy weaponry. It combines custom fingerprints and regular expressions, Clamscan and [PHP-Shell-Dectector](http://www.shelldetector.com/), all within one single shot. It can disable malicious files by moving them into a `QUARANTINE_DIR` and remove common PHP backdooring code as well as alert infected users via customized e-mails.
+This is anti-PHP-shells heavy weaponry. It combines custom fingerprints and regular expressions, Clamscan and [PHP-Shell-Dectector](http://www.shelldetector.com/), all within one single shot. It can disable malicious files by moving them into a `QUARANTINE_DIR` and remove common PHP backdooring code as well as alert infected users via customized e-mails.
 
-A rewrite of the [Python version](https://github.com/emposha/Shell-Detector) of PHP-Shell-Dectector is included in this package ([php-shell-detector](php-shell-detector)). Motivated because the original implementation just crashed when tested it through our PHP shells collection, the output was hard to parse and it had no support for inspecting specific files (only dirs). And guess what? it turned out to be x10 faster than the original implementation ;).
+The three scanning methods run concurrently on separated processes an interconnected by pipes. This is very efficient, not only because they can run on different core, but also because taking advantage of the filesystem cache; a file is brought from disk to memory once, not 3 times ;)
+
+A rewrite of the [Python version](https://github.com/emposha/Shell-Detector) of PHP-Shell-Dectector is included in this package ([php-shell-detector](php-shell-detector)). Motivated because the original implementation just crashed when tested through our PHP shells collection, the output was hard to parse and it had no support for inspecting specific files (only dirs). And guess what? it turned out to be x10 faster than the original implementation ;).
+
+A Python client for clamd, [clamd-client](clamd-client), is also included. Mainly because having better control over the pipeline stream and also being able to submit jobs concurrently to the clamd daemon using a thread pool pattern.
 
 
 #### Usage
