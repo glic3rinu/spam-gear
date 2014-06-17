@@ -8,6 +8,7 @@ import socket
 import struct
 import base64
 import sys
+import time
 from threading import Thread
 from Queue import Queue
 
@@ -316,6 +317,13 @@ def analyze(queue):
         filename = queue.get()
         if filename == "__TERMINATE__":
             queue.task_done()
+            counter = 0
+            # Wait as much as 10 seconds for other threads to finish
+            while not queue.empty():
+                counter += 1
+                time.sleep(0.5)
+                if counter >= 20:
+                    queue.task_done()
             break
         result = clamd.multiscan_file(filename)
         if result:
@@ -330,9 +338,8 @@ def analyze(queue):
 
 
 if __name__ == "__main__":
-#    clamd.reload()
     num_threads = sys.argv[1] if len(sys.argv) == 2 else 4
-    queue = Queue(num_threads)
+    queue = Queue()
     for i in range(num_threads):
         worker = Thread(target=analyze, args=(queue,))
         worker.setDaemon(True)
