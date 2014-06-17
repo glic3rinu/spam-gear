@@ -132,7 +132,7 @@ EOF
 )
 
 
-function custom_regex () {
+{
     while read filename; do
         if [[ "${filename}" != *php ]]; then
             # Clamscan is not able to read from stdin, that's why a tmp file is used
@@ -176,10 +176,10 @@ function custom_regex () {
         fi;
     done
     exit $found
-}
+} < <(cat -) 3> $pipe1 &
 
 
-function clamscan () {
+{
     while read line; do
         current=( ${line} )
         filename=${current[0]}
@@ -191,10 +191,10 @@ function clamscan () {
         fi
     done < <(cat - | $(dirname $0)/clamd-client 2> /dev/null)
     exit $found
-}
+} < $pipe1 3> $pipe2 &
 
 
-function php_shell_detector () {
+{
     while read line; do
         current=( ${line} )
         filename=${current[0]}
@@ -206,12 +206,8 @@ function php_shell_detector () {
             echo "${filename} [DETECTOR] ${current[1]}"
         fi
     done < <(cat - | $(dirname $0)/php-shell-detector)
-}
+} < $pipe2
 
-
-custom_regex < <(cat -) 3> $pipe1 &
-clamscan < $pipe1 3> $pipe2 &
-php_shell_detector < $pipe2
 
 detector_found=$found
 wait %1
