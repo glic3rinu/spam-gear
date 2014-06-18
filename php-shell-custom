@@ -5,7 +5,7 @@ import re
 import sys
 
 
-def analyse():
+def analyse(clean):
     dirname = os.path.dirname(os.path.realpath(__file__))
     backdoorspath = os.path.join(dirname, 'backdoors.re')
     backdoor_regex = re.compile(r'eval\s*\(\s*base64_decode.*_POST')
@@ -39,11 +39,14 @@ def analyse():
             else:
                 for num, backdoor in backdoors:
                     if backdoor.search(content):
-                        content = backdoor.sub('', content)
-                        with open(filename, 'wt') as f:
-                            f.write(content)
+                        label = '[NON-CLEANED]'
+                        if clean:
+                            content = backdoor.sub('', content)
+                            with open(filename, 'wt') as f:
+                                f.write(content)
+                            label = '[CLEANED]'
                         match = True
-                        print filename, '[PHP.Backdoor.%i]' % num
+                        print filename, '[PHP.Backdoor.%i]' % num, label
                         break
                 else:
                     if backdoor_regex.search(content):
@@ -53,4 +56,7 @@ def analyse():
 
 
 if __name__ == "__main__":
-    analyse()
+    clean = False
+    if len(sys.argv) > 1 and sys.argv[1] == '-c':
+        clean = True
+    analyse(clean)

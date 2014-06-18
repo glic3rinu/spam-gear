@@ -86,7 +86,7 @@ def analyse(dbpath):
                     shell = regex_shell.findall(shellname)[0]
                     label = "[%s]" % shell[0]
                     if shell[2] not in ['0', '1']:
-                        label += " INFECTED-FILE"
+                        label += ' [NON-CLEANED]'
                     print filename, label
 
 

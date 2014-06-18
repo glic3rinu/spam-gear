@@ -1,8 +1,5 @@
 #!/bin/bash
 
-# TODO trigger a full /home/user search when detected user infection via email scanning
-# TODO ctrl+c doesn't fucking work anymore
-
 
 print_help () {
     bold=$(tput bold)
@@ -104,7 +101,7 @@ trap 'rm -f "$pipe1"; rm -f "$pipe2";' EXIT INT TERM HUP
 dir=$(dirname $0)
 found=125
 declare -A notifications
-total_time=$(date +%s)
+initial_time=$(date +%s)
 
 function process_shell () {
     local filename=$1
@@ -121,25 +118,34 @@ function process_shell () {
 
 
 {
+    clean=''
+    [[ $QUARANTINE = true ]] && clean='-c'
     while read line; do
         current=( ${line} )
         filename=${current[0]}
-        if [[ "${line}" != *] ]]; then
+        if [[ "${line}" != *\] ]]; then
             echo "${line}" >&3
+            continue
+        fi
+        if [[ "${line}" == *\[CLEANED\] || "${line}" == *\[NON-CLEANED\] ]]; then
+            process_shell "${filename}" false
         else
             process_shell "${filename}"
-            echo "${filename} [CUSTOM] ${current[1]}"
         fi
-    done < <(cat - | { $dir/php-shell-custom 2>&1 1>&4 | grep -v 'IOError' 1>&2; } 4>&1)
+        echo "${filename} [CUSTOM] ${current[@]:1}"
+    done < <(cat - | { $dir/php-shell-custom $clean 2>&1 1>&4 | grep -v 'IOError' 1>&2; } 4>&1)
     exit $found
 } < <(cat -) 3> $pipe1 &
+
+
+pids="$!"
 
 
 {
     while read line; do
         current=( ${line} )
         filename=${current[0]}
-        if [[ "${line}" != *] ]]; then
+        if [[ "${line}" != *\] ]]; then
             echo "${line}" >&3
         else
             process_shell "${filename}"
@@ -150,17 +156,20 @@ function process_shell () {
 } < $pipe1 3> $pipe2 &
 
 
+pids="$pids $!"
+trap 'rm -f "$pipe1"; rm -f "$pipe2"; kill $pids; exit 1;' INT TERM HUP
+
+
 {
     while read line; do
         current=( ${line} )
         filename=${current[0]}
-        if [[ "${line}" == '*INFECTED-FILE' ]]; then
+        if [[ "${line}" == *\[INFECTED\] ]]; then
             process_shell "${filename}" false
-            echo "${filename} [${current[1]}] [NON-CLEANED]"
         else
             process_shell "${filename}"
-            echo "${filename} [DETECTOR] ${current[1]}"
         fi
+        echo "${filename} [DETECTOR] ${current[@]:1}"
     done < <(cat - | { $dir/php-shell-detector  2>&1 1>&4 | grep -v 'IOError' 1>&2; } 4>&1)
 } < $pipe2
 
@@ -179,7 +188,7 @@ if [[ $detector_found -eq 126 || $regex_found -eq 126 || $clam_found -eq 126 ]];
         ((m=(${1}%3600)/60)) && echo -n "${m} minutes "
         ((s=${1}%60)) && echo -n "${s} seconds"
     }
-    total_time=$(($(date +%s) - $total_time))
+    total_time=$(($(date +%s) - $initial_time))
     echo "" >&2
     echo "TOTAL TIME: $(convertsecs $total_time)" >&2
 fi
