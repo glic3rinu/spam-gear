@@ -1,10 +1,6 @@
 #!/bin/bash
 
 
-# TODO silent file not found errors but not others, use named pipes?
-# TODO trigger a full /home/user scan when detected user infection via email scanning
-# TODO mktemp for notifications
-
 print_help () {
     bold=$(tput bold)
     normal=$(tput sgr0)
@@ -17,8 +13,9 @@ print_help () {
 	    ${bold}php-shell-scan${normal} [ OPTION ]
 	    
 	${bold}DESCRIPTION${normal}
-	    Scans files looking for PHP shells using Clamscan and php-shell-detector, and optionally disables infected files
-	    by moving them to a quarantine directory.
+	    Scans files looking for PHP shells using Clamscan, php-shell-detector and custom fingerprints
+	    and regular expressions. It can optionally disable infected files by moving them to a quarantine directory
+	    and send notifactions to infected users.
 	    
 	    ${bold}-q, --quarantine=[QUARANTINE_DIR]${normal}
 	            Moves infected files into QUARANTINE_DIR, which defaults to /root/shells
@@ -93,141 +90,116 @@ while true; do
 done
 
 
-tmp_file=$(mktemp)
-found=false
-declare -A notifications
+pipe1=$(mktemp -u)
+pipe2=$(mktemp -u)
+pending=$(mktemp -u)
+mkfifo -m 600 "$pipe1"
+mkfifo -m 600 "$pipe2"
+trap 'rm -f $pipe1 $pipe2 $pending;' EXIT INT TERM HUP
 
+
+dir=$(dirname $0)
+found=125
+declare -A notifications
+initial_time=$(date +%s)
 
 function process_shell () {
-    # Helper function that performs common actions when a malicious file is found
-    
     local filename=$1
     local delete=${2:-true}
     local email=$(echo "${filename}" | sed "s#${USERNAME_PATTERN}#\1@$(hostname -d)#")
-    found=true
+    found=126
     if [[ $QUARANTINE = true && $delete = true ]]; then
         mv "${filename}" "${QUARANTINE_DIR}"
     fi
-    notifications[${email}]="${notifications[${email}]}\n${filename}"
+    if [[ $NOTIFY = true ]]; then
+        echo ${email} ${filename} >> $pending
+    fi
 }
 
 
-# String literals, fragments from shells, only scape \$ sign
-FINGERPRINTS=$(cat <<- EOF
-@error_reporting(0); @ini_set('error_log',NULL); @ini_set('log_errors',0);
-7X1re9s2z/Dn9VcwmjfZq+PYTtu7s2MnaQ5t2jTpcugp6ePJsmxrkS1PkuNkWf77C4C
-\$x74[41].\$x74[71].\$x74[10].\$x74[96].\$x74[12].\$x
-function Slowloris(\$method="GET", \$url="/", \$sleep=3){
-copy(\$_FILES['ufile']['tmp_name'],\$dir.chr(47).\$_FILES['ufile']['name'])) \$out
-r='#000000'>Change WHMCS Info<br>Patch Control Panel : [patch]/admin<br>Path
-EOF
-)
-
-# Regex used for grep (finding) and sed (cleaning)
-BACKDOORS=$(cat <<- EOF
-<?php\s*eval\s*(\s*base64_decode\s*(\s*\$_POST\['[0-z]*'\]));?>
-<?php\s*if(md5(\$_COOKIE\['_wp_debugger'\])==\"[0-z]*\"){\s*eval(base64_decode(\$_POST\['file'\]));\s*exit;\s*}\s*?>
-EOF
-)
-
-
-regex_time=$(date +%s)
-while read filename; do
-    if [[ "${filename}" != *php ]]; then
-        # Clamscan is not able to read from stdin, that's why a tmp file is used
-        echo "${filename}" >> "${tmp_file}"
-        continue
-    fi
-    # Lookup for common PHP shell fingerprints
-    if [[ $(grep -l -F "${FINGERPRINTS}" "${filename}" 2> /dev/null) ]]; then
-        process_shell "${filename}"
-        echo "${filename} [REGEX] [PHP-Shell]"
-    # Common PHP shell pattern
-    elif [[ $(grep -l -F "@ini_set('error_log'" "${filename}" 2> /dev/null) ]]; then
-        if [[ $(grep -l -F "@ini_set('log_errors'" "${filename}" 2> /dev/null) ]]; then
-            if [[ $(grep -l -F "opendir(" "${filename}" 2> /dev/null) ]]; then
-                process_shell "${filename}"
-                echo "${filename} [REGEX] [PHP-Shell2]"
-            fi
-        fi
-    else
-        # Cleanup possible backdoors
-        backdoor_found=false
-        while read -r backdoor; do
-            if [[ $(grep -l "${backdoor}" "${filename}" 2> /dev/null) ]]; then
-                backdoor_found=true
-                process_shell "${filename}" false
-                [[ $QUARANTINE = true ]] && 
-                    sed -i "s/${backdoor}//g" "${filename}" 2> /dev/null
-                echo "${filename} [REGEX] [PHP-Backdoor]"
-            fi
-        done < <(echo "${BACKDOORS}")
-        if [[ $backdoor_found = false ]]; then
-            # Classical backdoor pattern
-            BACKDOOR_REGEX='eval\s*(\s*base64_decode.*_POST'
-            if [[ $(grep -l "${BACKDOOR_REGEX}" "${filename}" 2> /dev/null) ]]; then
-                process_shell "${filename}" false
-                echo "${filename} [REGEX] [PHP-Backdoor] [NON-CLEANED]"
-            elif [[ "${filename}" != "" ]]; then
-                echo "${filename}" >> "${tmp_file}"
-            fi
-        fi
-    fi;
-done
-
-
-clam_time=$(date +%s)
-removed=""
-if [[ -s "${tmp_file}" ]]; then
+{
+    clean=''
+    [[ $QUARANTINE = true ]] && clean='-c'
     while read line; do
         current=( ${line} )
-        filename=${current[0]/%:/}
-        process_shell "${filename}"
-        echo "${filename} [CLAMSCAN] [${current[1]}]"
-        removed="${removed}\n${filename}"
-    done < <(clamscan -i -f "${tmp_file}" 2>&1 | grep FOUND)
-fi
+        filename=${current[0]}
+        if [[ "${line}" != *\] ]]; then
+            echo "${line}" >&3
+            continue
+        fi
+        if [[ "${line}" == *\[CLEANED\] || "${line}" == *\[NON-CLEANED\] ]]; then
+            process_shell "${filename}" false
+        else
+            process_shell "${filename}"
+        fi
+        echo "${filename} [CUSTOM] ${current[@]:1}"
+    done < <(cat - | { ${dir}/php-shell-custom ${clean} 2>&1 1>&4 | grep -v 'IOError' 1>&2; } 4>&1)
+    exit $found
+} < <(cat -) 3> $pipe1 &
 
 
-detector_time=$(date +%s)
-while read line; do
-    current=( ${line} )
-    filename=${current[0]}
-    if [[ $(echo "${line}" | grep ' INFECTED-FILE$') ]]; then
-        process_shell "${filename}" false
-        echo "${filename} [${current[1]}] [NON-CLEANED]"
-    else
-        process_shell "${filename}"
-        echo "${filename} [DETECTOR] [${current[1]}]"
-    fi
-done < <(echo "${removed}" \
-        | grep -v -x -f - "${tmp_file}" \
-        | $(dirname $0)/php-shell-detector 2> /dev/null)
+pids="$!"
 
 
-rm -f "${tmp_file}"
+{
+    while read line; do
+        current=( ${line} )
+        filename=${current[0]}
+        if [[ "${line}" != *\] ]]; then
+            echo "${line}" >&3
+        else
+            process_shell "${filename}"
+            echo "${filename} [CLAMAV] ${current[1]}"
+        fi
+    done < <(cat - | { ${dir}/clamd-client 2>&1 1>&4 | grep -v 'IOError' 1>&2; } 4>&1)
+    exit $found
+} < $pipe1 3> $pipe2 &
 
-if [[ $found = true ]]; then
+
+pids="$pids $!"
+trap 'rm -f $pipe1 $pipe2 $pending; kill $pids; exit 1;' INT TERM HUP
+
+
+{
+    while read line; do
+        current=( ${line} )
+        filename=${current[0]}
+        if [[ "${line}" == *\[INFECTED\] ]]; then
+            process_shell "${filename}" false
+        else
+            process_shell "${filename}"
+        fi
+        echo "${filename} [DETECTOR] ${current[@]:1}"
+    done < <(cat - | { ${dir}/php-shell-detector  2>&1 1>&4 | grep -v 'IOError' 1>&2; } 4>&1)
+} < $pipe2
+
+
+detector_found=$found
+wait %1
+regex_found=$?
+wait %2
+clam_found=$?
+
+
+if [[ $detector_found -eq 126 || $regex_found -eq 126 || $clam_found -eq 126 ]]; then
     # Show performance metrics if malicious files have been found
     convertsecs() {
         ((h=${1}/3600)) && echo -n "${h} hours "
         ((m=(${1}%3600)/60)) && echo -n "${m} minutes "
         ((s=${1}%60)) && echo -n "${s} seconds"
     }
-    regex_time=$(($(date +%s) - $regex_time))
-    clam_time=$(($(date +%s) - $clam_time))
-    detector_time=$(($(date +%s) - $detector_time))
-    total_time=$(($clam_time+$regex_time+$detector_time))
+    total_time=$(($(date +%s) - $initial_time))
     echo "" >&2
-    echo "- - - - - - - - - - - - - - - - - - - - - - - - - -" >&2
-    echo "REGEX TIME: $(convertsecs $regex_time)" >&2
-    echo "CLAM TIME: $(convertsecs $clam_time)" >&2
-    echo "DETECTOR TIME: $(convertsecs $detector_time)" >&2
     echo "TOTAL TIME: $(convertsecs $total_time)" >&2
 fi
 
 if [[ $NOTIFY = true ]]; then
     # Send pending user notifications if any
+    while read line; do
+        parts=( ${line} )
+        notifications[${parts[0]}]="${notifications[${parts[0]}]}\n${parts[1]}"
+    done < <(cat $pending)
+    rm $pending
     for EMAIL in "${!notifications[@]}"; do
         USERNAME=${EMAIL//@*/}
         SHELLS=$(echo -e "${notifications[${EMAIL}]}")
@@ -236,4 +208,5 @@ if [[ $NOTIFY = true ]]; then
         email="$(eval "${email}")"
         echo "${email}" | sendmail -i -t
     done
+
 fi
