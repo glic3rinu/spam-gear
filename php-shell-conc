@@ -95,7 +95,7 @@ pipe2=$(mktemp -u)
 pending=$(mktemp -u)
 mkfifo -m 600 "$pipe1"
 mkfifo -m 600 "$pipe2"
-trap 'rm -f "$pipe1"; rm -f "$pipe2";' EXIT INT TERM HUP
+trap 'rm -f $pipe1 $pipe2 $pending;' EXIT INT TERM HUP
 
 
 dir=$(dirname $0)
@@ -157,7 +157,7 @@ pids="$!"
 
 
 pids="$pids $!"
-trap 'rm -f "$pipe1"; rm -f "$pipe2"; kill $pids; exit 1;' INT TERM HUP
+trap 'rm -f $pipe1 $pipe2 $pending; kill $pids; exit 1;' INT TERM HUP
 
 
 {
