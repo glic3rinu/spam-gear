@@ -333,7 +333,7 @@ def analyze(queue):
                     sys.stderr.write('%s: IOError\n' % filename)
                 elif result[0] == 'FOUND':
                     mutex.acquire()
-                    print filename, "[%s]" % result[1]t
+                    print filename, "[%s]" % result[1]
                     mutex.release()
         else:
             mutex.acquire()
