@@ -194,7 +194,6 @@ if [[ $NOTIFY = true ]]; then
     done < <(cat $pending)
     rm $pending
     for EMAIL in "${!notifications[@]}"; do
-        echo $EMAIL
         USERNAME=${EMAIL//@*/}
         SHELLS=$(echo -e "${notifications[${EMAIL}]}")
         email=$(cat "${EMAIL_PATH}")
