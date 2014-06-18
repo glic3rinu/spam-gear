@@ -46,7 +46,7 @@ def unserialize(s):
     return methods[s[0].lower()](s[2:])
 
 
-def updatedb(dbdir):
+def updatedb(dbpath):
     url = 'https://raw.github.com/emposha/PHP-Shell-Detector/master/shelldetect.db'
     database = urllib2.urlopen(url).read()
     try:
@@ -54,14 +54,14 @@ def updatedb(dbdir):
     except Exception as e:
         sys.stderr.write(str(e) + '\n')
         sys.exit(1)
-    with open(dbdir, "wb") as local_file:
+    with open(dbpath, "wb") as local_file:
         local_file.write(database)
     sys.exit(0)
 
 
-def analyse(dbdir):
+def analyse(dbpath):
     regex_shell = re.compile('(.*)\[(.*?)\]\[(.*?)\]\[(.*?)\]')
-    database = str(open(dbdir, 'r').read())
+    database = str(open(dbpath, 'r').read())
     database = base64.decodestring(database)
     
     fingerprints = []
@@ -77,9 +77,9 @@ def analyse(dbdir):
         filename = filename.strip()
         if filename.endswith('.php'):
             try:
-                filecontent = open(filename, 'rt', -1).read()
+                filecontent = open(filename, 'rt').read()
             except IOError:
-                sys.stderr.write('%s: does not exists\n' % filename)
+                sys.stderr.write('%s: IOError\n' % filename)
                 continue
             for fingerprint, shellname in fingerprints:
                 if fingerprint.findall(filecontent):
@@ -92,8 +92,8 @@ def analyse(dbdir):
 
 if __name__ == "__main__":
     dirname = os.path.dirname(os.path.realpath(__file__))
-    dbdir = os.path.join(dirname, 'shelldetect.db')
+    dbpath = os.path.join(dirname, 'shelldetect.db')
     if len(sys.argv) > 1 and sys.argv[1] == 'updatedb':
-        updatedb(dbdir)
+        updatedb(dbpath)
     else:
-        analyse(dbdir)
+        analyse(dbpath)

@@ -9,6 +9,7 @@ import struct
 import base64
 import sys
 import time
+import thread
 from threading import Thread
 from Queue import Queue
 
@@ -329,17 +330,22 @@ def analyze(queue):
         if result:
             for filename, result in result.iteritems():
                 if result[0] == 'ERROR':
-                    sys.stderr.write(result[1] + '\n')
+                    sys.stderr.write('%s: IOError\n' % filename)
                 elif result[0] == 'FOUND':
-                    print filename, "[%s]" % result[1]
+                    mutex.acquire()
+                    print filename, "[%s]" % result[1]t
+                    mutex.release()
         else:
+            mutex.acquire()
             print filename
+            mutex.release()
         queue.task_done()
 
 
 if __name__ == "__main__":
     num_threads = sys.argv[1] if len(sys.argv) == 2 else 4
     queue = Queue()
+    mutex = thread.allocate_lock()
     for i in range(num_threads):
         worker = Thread(target=analyze, args=(queue,))
         worker.setDaemon(True)

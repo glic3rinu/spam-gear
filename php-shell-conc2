@@ -4,7 +4,8 @@
 # TODO trigger a full /home/user search when detected user infection via email scanning
 # TODO mktemp for notifications if notfy=true
 # TODO ctrl+c doesn't fucking work anymore
-
+# TODO rewrite regex in python 17 HOURS IS NOT ACCEPTABLE http://stackoverflow.com/questions/15789228/how-to-save-both-matching-and-non-matching-from-grep
+#       http://unix.stackexchange.com/questions/21212/how-can-i-redirect-matching-lines-to-a-file-and-non-matching-lines-to-a-differe
 
 print_help () {
     bold=$(tput bold)
@@ -97,11 +98,9 @@ done
 
 pipe1=$(mktemp -u)
 pipe2=$(mktemp -u)
-pending=$(mktemp -u)
 mkfifo -m 600 "$pipe1"
 mkfifo -m 600 "$pipe2"
 trap 'rm -f "$pipe1"; rm -f "$pipe2";' EXIT INT TERM HUP
-
 
 dir=$(dirname $0)
 found=125
@@ -116,14 +115,14 @@ function process_shell () {
     if [[ $QUARANTINE = true && $delete = true ]]; then
         mv "${filename}" "${QUARANTINE_DIR}"
     fi
-    if [[ $NOTIFY = true ]]; then
-        echo ${email} ${filename} >> $pending
-    fi
+    notifications[${email}]="${notifications[${email}]}\n${filename}"
 }
 
 
 {
+    # TODO NON CLEANED
     while read line; do
+        echo "${line}" >&2
         current=( ${line} )
         filename=${current[0]}
         if [[ "${line}" != *] ]]; then
@@ -188,13 +187,7 @@ fi
 
 if [[ $NOTIFY = true ]]; then
     # Send pending user notifications if any
-    while read line; do
-        parts=( ${line} )
-        notifications[${parts[0]}]="${notifications[${parts[0]}]}\n${parts[1]}"
-    done < <(cat $pending)
-    rm $pending
     for EMAIL in "${!notifications[@]}"; do
-        echo $EMAIL
         USERNAME=${EMAIL//@*/}
         SHELLS=$(echo -e "${notifications[${EMAIL}]}")
         email=$(cat "${EMAIL_PATH}")
@@ -202,5 +195,4 @@ if [[ $NOTIFY = true ]]; then
         email="$(eval "${email}")"
         echo "${email}" | sendmail -i -t
     done
-
 fi
