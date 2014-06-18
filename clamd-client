@@ -344,14 +344,14 @@ def analyze(queue):
 
 if __name__ == "__main__":
     num_threads = sys.argv[1] if len(sys.argv) == 2 else 4
-    queue = Queue()
+    queue = Queue(num_threads*10)
     mutex = thread.allocate_lock()
     for i in range(num_threads):
         worker = Thread(target=analyze, args=(queue,))
         worker.setDaemon(True)
         worker.start()
     
-    for filename in sys.stdin.readlines():
+    for filename in sys.stdin:
         filename = filename.strip()
         queue.put(filename)
     

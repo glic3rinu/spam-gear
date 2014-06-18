@@ -73,7 +73,7 @@ def analyse(dbpath):
             fingerprint = base64.decodestring(fingerprint)
         fingerprints.append([re.compile(re.escape(fingerprint)), shellname])
     
-    for filename in sys.stdin.readlines():
+    for filename in sys.stdin:
         filename = filename.strip()
         if filename.endswith('.php'):
             try:

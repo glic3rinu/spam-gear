@@ -18,7 +18,7 @@ def analyse(clean):
     for num, fingerprint in enumerate(open(fingerprintspath, 'r')):
         fingerprints.append((num, fingerprint.strip()))
     
-    for filename in sys.stdin.readlines():
+    for filename in sys.stdin:
         filename = filename.strip()
         if not filename.endswith('.php'):
             print filename
