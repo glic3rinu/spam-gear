@@ -147,7 +147,6 @@ trap 'rm -f $pipe $pending; kill $pid; exit 1;' INT TERM HUP
         process_shell "${filename}"
         echo "${line}"
     done < <(cat - | { ${dir}/clamd-client 2>&1 1>&4 | grep -v 'IOError' 1>&2; } 4>&1)
-    exit $found
 } < $pipe
 
 
