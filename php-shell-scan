@@ -1,6 +1,8 @@
 #!/bin/bash
 
 
+# TODO modsecurity util/runav.pl
+
 print_help () {
     bold=$(tput bold)
     normal=$(tput sgr0)
@@ -167,7 +169,7 @@ if [[ $detector_found -eq 126 || $clam_found -eq 126 ]]; then
     echo "TOTAL TIME: $(convertsecs $total_time)" >&2
 fi
 
-if [[ $NOTIFY = true ]]; then
+if [[ $NOTIFY = true && -e ${pending} ]]; then
     # Send pending user notifications if any
     while read line; do
         parts=( ${line} )
@@ -182,5 +184,4 @@ if [[ $NOTIFY = true ]]; then
         email="$(eval "${email}")"
         echo "${email}" | sendmail -i -t
     done
-
 fi
