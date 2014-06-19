@@ -46,7 +46,8 @@ def unserialize(s):
     return methods[s[0].lower()](s[2:])
 
 
-def updatedb(dbpath):
+def updatedb(dirname):
+    dbpath = os.path.join(dirname, 'shelldetect.db')
     url = 'https://raw.github.com/emposha/PHP-Shell-Detector/master/shelldetect.db'
     database = urllib2.urlopen(url).read()
     try:
@@ -59,10 +60,22 @@ def updatedb(dbpath):
     sys.exit(0)
 
 
-def analyse(dbpath):
+def analyse(clean, dirname):
+    dbpath = os.path.join(dirname, 'shelldetect.db')
     regex_shell = re.compile('(.*)\[(.*?)\]\[(.*?)\]\[(.*?)\]')
     database = str(open(dbpath, 'r').read())
     database = base64.decodestring(database)
+    
+    backdoorspath = os.path.join(dirname, 'backdoors.re')
+    backdoor_regex = re.compile(r'eval\s*\(\s*base64_decode.*_POST')
+    backdoors = []
+    for num, backdoor in enumerate(open(backdoorspath, 'r')):
+        backdoors.append((num, re.compile(backdoor.strip())))
+    
+    custom_path = os.path.join(dirname, 'fingerprints.txt')
+    custom = []
+    for num, fingerprint in enumerate(open(custom_path, 'r')):
+        custom.append((num, fingerprint.strip()))
     
     fingerprints = []
     for fingerprint, shellname in unserialize(database)[0].iteritems():
@@ -75,25 +88,63 @@ def analyse(dbpath):
     
     for filename in sys.stdin:
         filename = filename.strip()
-        if filename.endswith('.php'):
-            try:
-                filecontent = open(filename, 'rt').read()
-            except IOError:
-                sys.stderr.write('%s: IOError\n' % filename)
-                continue
-            for fingerprint, shellname in fingerprints:
-                if fingerprint.findall(filecontent):
-                    shell = regex_shell.findall(shellname)[0]
-                    label = "[%s]" % shell[0]
-                    if shell[2] not in ['0', '1']:
-                        label += ' [NON-CLEANED]'
-                    print filename, label
+        if not filename.endswith('.php'):
+            print filename
+            continue
+        try:
+            f = open(filename, 'rt')
+        except IOError:
+            sys.stderr.write('%s: IOError\n' % filename)
+            continue
+        with f:
+            found = False
+            last = ''
+            content = str(f.read())
+            # Check custom fingerprints
+            for num, fingerprint in custom:
+                if fingerprint in content:
+                    found = True
+                    print filename, '[CUSTOM] [PHP.Finger.%i]' % num
+                    break
+            else:
+                # Check php-shell-detector
+                for fingerprint, shellname in fingerprints:
+                    if fingerprint.findall(content):
+                        shell = regex_shell.findall(shellname)[0]
+                        label = "[DETECTOR] [%s]" % shell[0]
+                        if shell[2] not in ['0', '1']:
+                            label += ' [NON-CLEANED]'
+                            last = filename, label
+                        else:
+                            found = True
+                            print filename, label
+                        break
+            if not found:
+                # Check custom backdoors
+                for num, backdoor in backdoors:
+                    if backdoor.search(content):
+                        found = True
+                        if clean:
+                            content = backdoor.sub('', content)
+                            with open(filename, 'wt') as f:
+                                f.write(content)
+                        print filename, '[CUSTOM] [PHP.Backdoor.%i]' % num
+                        break
+                else:
+                    if backdoor_regex.search(content):
+                        last = filename, '[CUSTOM] [Php.Backdoor] [NON-CLEANED]'
+            if not found:
+                if last != '':
+                    print last[0], last[1]
+                print filename
 
 
 if __name__ == "__main__":
     dirname = os.path.dirname(os.path.realpath(__file__))
-    dbpath = os.path.join(dirname, 'shelldetect.db')
-    if len(sys.argv) > 1 and sys.argv[1] == 'updatedb':
+    clean = False
+    if len(sys.argv) == 2 and sys.argv[1] == 'updatedb':
         updatedb(dbpath)
+    elif len(sys.argv) == 2 and sys.argv[1] == '-c':
+        clean = True
     else:
-        analyse(dbpath)
+        analyse(clean, dirname)
