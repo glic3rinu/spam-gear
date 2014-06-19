@@ -1,6 +1,5 @@
 #!/bin/bash
 
-# TODO clamscan last: finish first pppython because of inmens memory consumption
 
 print_help () {
     bold=$(tput bold)
