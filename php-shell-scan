@@ -1,6 +1,5 @@
 #!/bin/bash
 
-# TODO Do everitying on a single python program ans fuck bash
 
 print_help () {
     bold=$(tput bold)
@@ -91,12 +90,10 @@ while true; do
 done
 
 
-pipe1=$(mktemp -u)
-pipe2=$(mktemp -u)
+pipe=$(mktemp -u)
 pending=$(mktemp -u)
-mkfifo -m 600 "$pipe1"
-mkfifo -m 600 "$pipe2"
-trap 'rm -f $pipe1 $pipe2 $pending;' EXIT INT TERM HUP
+mkfifo -m 600 "$pipe"
+trap 'rm -f $pipe $pending;' EXIT INT TERM HUP
 
 
 dir=$(dirname $0)
@@ -133,56 +130,33 @@ function process_shell () {
         else
             process_shell "${filename}"
         fi
-        echo "${filename} [CUSTOM] ${current[@]:1}"
-    done < <(cat - | { ${dir}/php-shell-custom ${clean} 2>&1 1>&4 | grep -v 'IOError' 1>&2; } 4>&1)
+        echo "${line}"
+    done < <(cat - | { ${dir}/php-shell-detector ${clean} 2>&1 1>&4 | grep -v 'IOError' 1>&2; } 4>&1)
     exit $found
-} < <(cat -) 3> $pipe1 &
+} < <(cat -) 3> $pipe &
 
 
-pids="$!"
+pid=$!
+trap 'rm -f $pipe $pending; kill $pid; exit 1;' INT TERM HUP
 
 
 {
     while read line; do
         current=( ${line} )
         filename=${current[0]}
-        if [[ "${line}" != *\] ]]; then
-            echo "${line}" >&3
-        else
-            process_shell "${filename}"
-            echo "${filename} [CLAMAV] ${current[1]}"
-        fi
+        process_shell "${filename}"
+        echo "${line}"
     done < <(cat - | { ${dir}/clamd-client 2>&1 1>&4 | grep -v 'IOError' 1>&2; } 4>&1)
     exit $found
-} < $pipe1 3> $pipe2 &
+} < $pipe
 
 
-pids="$pids $!"
-trap 'rm -f $pipe1 $pipe2 $pending; kill $pids; exit 1;' INT TERM HUP
-
-
-{
-    while read line; do
-        current=( ${line} )
-        filename=${current[0]}
-        if [[ "${line}" == *\[INFECTED\] ]]; then
-            process_shell "${filename}" false
-        else
-            process_shell "${filename}"
-        fi
-        echo "${filename} [DETECTOR] ${current[@]:1}"
-    done < <(cat - | { ${dir}/php-shell-detector  2>&1 1>&4 | grep -v 'IOError' 1>&2; } 4>&1)
-} < $pipe2
-
-
-detector_found=$found
+clam_found=$found
 wait %1
-regex_found=$?
-wait %2
-clam_found=$?
+detector_found=$?
 
 
-if [[ $detector_found -eq 126 || $regex_found -eq 126 || $clam_found -eq 126 ]]; then
+if [[ $detector_found -eq 126 || $clam_found -eq 126 ]]; then
     # Show performance metrics if malicious files have been found
     convertsecs() {
         ((h=${1}/3600)) && echo -n "${h} hours "
