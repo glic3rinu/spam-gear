@@ -1,6 +1,7 @@
 #!/bin/bash
 
-# TODO clamscan last: finish first pppython because of inmens memory consumption
+# TODO Do everitying on a single python program ans fuck bash
+
 print_help () {
     bold=$(tput bold)
     normal=$(tput sgr0)
