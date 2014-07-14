@@ -108,7 +108,7 @@ found=false
 while read line; do
     current=( ${line} )
     if [[ ${current[0]} != "" && ${current[0]} -ge $MAX_CONNECTIONS ]]; then
-        userlogs=$(echo "${log}" | grep "sasl_username=${current[1]}")
+        userlogs=$(echo "${log}" | grep "sasl_username=${current[1]}$")
         logentry=$(echo "${userlogs}" | head -n1)
         numips=$(echo "${userlogs}" | cut -d'[' -f3 | cut -d']' -f1 \
                 | sort | uniq | wc -l)
