@@ -101,6 +101,7 @@ found=125
 declare -A notifications
 initial_time=$(date +%s)
 
+
 function process_shell () {
     local filename=$1
     local delete=${2:-true}
@@ -117,7 +118,9 @@ function process_shell () {
 
 {
     clean=''
-    [[ $QUARANTINE = true ]] && clean='-c'
+    if [[ $QUARANTINE = true ]]; then
+        clean='-c'
+    fi
     while read line; do
         current=( ${line} )
         filename=${current[0]}
@@ -167,7 +170,7 @@ if [[ $detector_found -eq 126 || $clam_found -eq 126 ]]; then
     echo "TOTAL TIME: $(convertsecs $total_time)" >&2
 fi
 
-if [[ $NOTIFY = true ]]; then
+if [[ $NOTIFY = true && -e ${pending} ]]; then
     # Send pending user notifications if any
     while read line; do
         parts=( ${line} )
