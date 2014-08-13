@@ -1,6 +1,8 @@
 #!/bin/bash
 
 
+# TODO modsecurity util/runav.pl
+
 print_help () {
     bold=$(tput bold)
     normal=$(tput sgr0)
@@ -185,5 +187,4 @@ if [[ $NOTIFY = true && -e ${pending} ]]; then
         email="$(eval "${email}")"
         echo "${email}" | sendmail -i -t
     done
-
 fi
