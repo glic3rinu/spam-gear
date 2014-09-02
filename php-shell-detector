@@ -143,8 +143,9 @@ if __name__ == "__main__":
     dirname = os.path.dirname(os.path.realpath(__file__))
     clean = False
     if len(sys.argv) == 2 and sys.argv[1] == 'updatedb':
-        updatedb(dbpath)
+        updatedb(dirname)
     elif len(sys.argv) == 2 and sys.argv[1] == '-c':
         clean = True
+        analyse(clean, dirname)
     else:
         analyse(clean, dirname)

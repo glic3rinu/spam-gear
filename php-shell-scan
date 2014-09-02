@@ -1,6 +1,7 @@
 #!/bin/bash
 
-# TODO clamscan last: finish first pppython because of inmens memory consumption
+
+# TODO modsecurity util/runav.pl
 
 print_help () {
     bold=$(tput bold)
@@ -102,6 +103,7 @@ found=125
 declare -A notifications
 initial_time=$(date +%s)
 
+
 function process_shell () {
     local filename=$1
     local delete=${2:-true}
@@ -118,7 +120,9 @@ function process_shell () {
 
 {
     clean=''
-    [[ $QUARANTINE = true ]] && clean='-c'
+    if [[ $QUARANTINE = true ]]; then
+        clean='-c'
+    fi
     while read line; do
         current=( ${line} )
         filename=${current[0]}
@@ -148,7 +152,6 @@ trap 'rm -f $pipe $pending; kill $pid; exit 1;' INT TERM HUP
         process_shell "${filename}"
         echo "${line}"
     done < <(cat - | { ${dir}/clamd-client 2>&1 1>&4 | grep -v 'IOError' 1>&2; } 4>&1)
-    exit $found
 } < $pipe
 
 
@@ -169,7 +172,7 @@ if [[ $detector_found -eq 126 || $clam_found -eq 126 ]]; then
     echo "TOTAL TIME: $(convertsecs $total_time)" >&2
 fi
 
-if [[ $NOTIFY = true ]]; then
+if [[ $NOTIFY = true && -e ${pending} ]]; then
     # Send pending user notifications if any
     while read line; do
         parts=( ${line} )
@@ -184,5 +187,4 @@ if [[ $NOTIFY = true ]]; then
         email="$(eval "${email}")"
         echo "${email}" | sendmail -i -t
     done
-
 fi
