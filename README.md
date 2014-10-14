@@ -230,4 +230,6 @@ PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/root/spam-gea
 
 
 ## TODO
-- Detect `<?php backdor = iuroiealkaslkdj`
+- Document using spam-gear with apache2-modsecurity:
+    - SecRule FILES_TMPNAMES "@inspectFile /root/spam-gear/runav.sh" "id:159,phase:2,t:none,log,deny,msg:'Malicious Code Detected, access denied'"
+

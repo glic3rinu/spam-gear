@@ -125,12 +125,12 @@ while read line; do
             report="${report} [DISABLED]"
             if [[ $nis = true ]]; then
                 echo "NIS"
-#                ssh root@${NIS_SERVER} "
-#                    sed -i 's/^${current[1]}:/${current[1]}:*/' /var/yp/ypfiles/shadow &&
-#                    make -C /var/yp/"
+                ssh root@${NIS_SERVER} "
+                    sed -i 's/^${current[1]}:/${current[1]}:*/' /var/yp/ypfiles/shadow &&
+                    make -C /var/yp/"
             else
                 echo "LOCAL"
-#                passwd "${current[1]}" -l
+                passwd "${current[1]}" -l
             fi
             (
                 echo "Subject: SPAMMER DETECTED AT $(hostname -f) [USER DISABLED]"
