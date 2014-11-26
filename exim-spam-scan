@@ -1,18 +1,16 @@
 #!/bin/bash
 
 # USAGE:
-#   exim-spam-scan SECONDS MAX_CONNECTIONS
-
+#   exim-spam-scan SECONDS DEFAULT_MAX_CONNECTIONS
 
 SECONDS=${1:-3600}
-MAX_CONNECTIONS=${2:-60}
+DEFAULT=${2:-60}
 
 
 log=$(grep '<=' /var/log/exim4/mainlog | awk -v SECONDS=$SECONDS '
     BEGIN {
         now = systime()
         current = strftime("%y:%m:%d:%H:%m:%S", now)
-        print "Current date/time is: " current
         boundary = SECONDS
     } {
         column1 = $1
@@ -27,27 +25,50 @@ log=$(grep '<=' /var/log/exim4/mainlog | awk -v SECONDS=$SECONDS '
     }'
 )
 
+
 period="$SECONDS seconds"
-message="During the last $period the following senders have made at least $MAX_CONNECTIONS SMTP connections."
+message="During the last $period the following senders have made at least $DEFAULT SMTP connections."
 sent=false
+declare -A max_conn
+overrides="$(dirname $0)/exim-spam-scan.overrides"
+
+if [[ -e "${overrides}" ]]; then
+    while read line; do
+        if [[ "${line}" != "" ]]; then
+            line=( ${line} )
+            max_conn[${line[0]}]=${line[1]}
+        fi
+    done < <(cat ${overrides})
+fi
+
 
 # USER based P=local
 while read line; do
-    current=($(echo "$line"))
-    if [[ ${current[0]} != "" && ${current[0]} -gt $MAX_CONNECTIONS ]]; then
-        logentry=$(echo "$log" | grep "U=${current[1]} "|head -n1)
-        [ $sent = false ] && echo -e "${message}\n" && sent=true
-        echo "${current[0]} -- ${logentry}"
+    line=( ${line} )
+    conn=${line[0]}
+    user=${line[1]}
+    if [[ ${conn} -gt ${max_conn[$user]:-$DEFAULT} ]]; then
+        if [[ $sent = false ]]; then
+            echo -e "${message}\n"
+            sent=true
+        fi
+        logentry=$(echo "$log" | grep "U=${user} "|head -n1)
+        echo "${conn} -- ${logentry}"
     fi;
 done < <(echo "$log" | grep 'U=' | awk -F'U=' {'print $2'} | awk {'print $1'} | sort | uniq -c)
 
 
 # HOST based P=smtp
 while read line; do
-    current=($(echo "$line"))
-    if [[ ${current[0]} != "" && ${current[0]} -gt $MAX_CONNECTIONS ]]; then
-        logentry=$(echo "$log" | grep "\(${current[1]}\)" | head -n1)
-        [ $sent = false ] && echo "${message}\n" && sent=true
-        echo "{$spammers}\n${current[0]} -- ${logentry}"
+    line=( ${line} )
+    conn=${line[0]}
+    user=${line[1]}
+    if [[ ${conn} -gt ${max_conn[$user]:-$DEFAULT} ]]; then
+        if [[ $sent = false ]]; then
+            echo -e "${message}\n"
+            sent=true
+        fi
+        logentry=$(echo "$log" | grep "\(${user}\)" | head -n1)
+        echo "${conn} -- ${logentry}"
     fi;
 done < <(echo "$log" | grep -v 'U=' | awk -F'(' {'print $2'} | cut -d')' -f1 | sort | uniq -c)

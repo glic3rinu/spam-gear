@@ -1,0 +1,356 @@
+#!/usr/bin/env python
+
+# This is mainly stolen from http://xael.org/norman/python/pyclamd/
+
+__version__ = "0.3.4"
+
+import socket
+import struct
+import base64
+import sys
+import time
+import thread
+from threading import Thread
+from Queue import Queue
+
+
+class BufferTooLongError(ValueError):
+    """Class for errors with clamd using INSTREAM with a buffer lenght > StreamMaxLength in /etc/clamav/clamd.conf"""
+
+
+class ConnectionError(socket.error):
+    """Class for errors communication with clamd"""
+
+
+class _ClamdGeneric(object):
+    def EICAR(self):
+        EICAR = base64.b64decode('WDVPIVAlQEFQWzRcUFpYNTQoUF4pN0NDKTd9JEVJQ0FSLVNUQU5EQVJELUFOVElWSVJVUy1URVNU\nLUZJTEUhJEgrSCo=\n'.encode('ascii')).decode('ascii')
+        return EICAR
+    
+    def ping(self):
+        self._init_socket()
+        try:
+            self._send_command('PING')
+            result = self._recv_response()
+            self._close_socket()
+        except socket.error:
+            raise ConnectionError('Could not ping clamd server')
+        if result == 'PONG':
+            return True
+        else:
+            raise ConnectionError('Could not ping clamd server [{0}]'.format(result))
+        return
+    
+    def version(self):
+        self._init_socket()
+        try:
+            self._send_command('VERSION')
+            result = self._recv_response()
+            self._close_socket()
+        except socket.error:
+            raise ConnectionError('Could not get version information from server')
+        return result
+
+    def stats(self):
+        self._init_socket()
+        try:
+            self._send_command('STATS')
+            result = self._recv_response_multiline()
+            self._close_socket()
+        except socket.error:
+            raise ConnectionError('Could not get version information from server')
+        return result
+    
+    def reload(self):
+        try:
+            self._init_socket()
+            self._send_command('RELOAD')
+            result = self._recv_response()
+            self._close_socket()
+        except socket.error:
+            raise ConnectionError('Could probably not reload signature database')
+        return result
+    
+    def shutdown(self):
+        try:
+            self._init_socket()
+            self._send_command('SHUTDOWN')
+            self._recv_response()
+            self._close_socket()
+        except socket.error:
+            raise ConnectionError('Could probably not shutdown clamd')
+    
+    def scan_file(self, file):
+        assert isinstance(file, str), 'Wrong type for [file], should be a string [was {0}]'.format(type(file))
+        try:
+            self._init_socket()
+            self._send_command('SCAN {0}'.format(file))
+        except socket.error:
+            raise ConnectionError('Unable to scan {0}'.format(file))
+        result='...'
+        dr={}
+        while result:
+            try:
+                result = self._recv_response()
+            except socket.error:
+                raise ConnectionError('Unable to scan {0}'.format(file))
+            if len(result) > 0:
+                filename, reason, status = self._parse_response(result)
+                if status == 'ERROR':
+                    dr[filename] = ('ERROR', '{0}'.format(reason))
+                    return dr
+                    
+                elif status == 'FOUND':
+                    dr[filename] = ('FOUND', '{0}'.format(reason))
+        self._close_socket()
+        if not dr:
+            return None
+        return dr
+    
+    def multiscan_file(self, file):
+        assert isinstance(file, str), 'Wrong type for [file], should be a string [was {0}]'.format(type(file))
+        try:
+            self._init_socket()
+            self._send_command('MULTISCAN {0}'.format(file))
+        except socket.error:
+            raise ConnectionError('Unable to scan {0}'.format(file))
+        result='...'
+        dr={}
+        while result:
+            try:
+                result = self._recv_response()
+            except socket.error:
+                raise ConnectionError('Unable to scan {0}'.format(file))
+            if len(result) > 0:
+                for resline in result.splitlines():
+                    filename, reason, status = self._parse_response(resline)
+                    if status == 'ERROR':
+                        dr[filename] = ('ERROR', '{0}'.format(reason))
+                    
+                    elif status == 'FOUND':
+                        dr[filename] = ('FOUND', '{0}'.format(reason))
+        self._close_socket()
+        if not dr:
+            return None
+        return dr
+    
+    def contscan_file(self, file):
+        assert isinstance(file, str), 'Wrong type for [file], should be a string [was {0}]'.format(type(file))
+        try:
+            self._init_socket()
+            self._send_command('CONTSCAN {0}'.format(file))
+        except socket.error:
+            raise ConnectionError('Unable to scan  {0}'.format(file))
+        result='...'
+        dr={}
+        while result:
+            try:
+                result = self._recv_response()
+            except socket.error:
+                raise ConnectionError('Unable to scan  {0}'.format(file))
+            if len(result) > 0:
+                for resline in result.splitlines():
+                    filename, reason, status = self._parse_response(resline)
+                    
+                    if status == 'ERROR':
+                        dr[filename] = ('ERROR', '{0}'.format(reason))
+                    
+                    elif status == 'FOUND':
+                        dr[filename] = ('FOUND', '{0}'.format(reason))
+        self._close_socket()
+        if not dr:
+            return None
+        return dr
+    
+    def scan_stream(self, buffer_to_test):
+        try:
+            self._init_socket()
+            self._send_command('INSTREAM')
+            max_chunk_size = 1024 # MUST be < StreamMaxLength in /etc/clamav/clamd.conf
+            chunks_left = buffer_to_test
+            while len(chunks_left)>0:
+                chunk = chunks_left[:max_chunk_size]
+                chunks_left = chunks_left[max_chunk_size:]
+                #size = bytes.decode(struct.pack('!L', len(chunk)))
+                size = struct.pack('!L', len(chunk))
+                #self.clamd_socket.send(str.encode('{0}{1}'.format(size, chunk)))
+                #self.clamd_socket.send('{0}'.format(size) + chunk)
+                self.clamd_socket.send(size)
+                self.clamd_socket.send(chunk)
+            # Terminating stream
+            self.clamd_socket.send(struct.pack('!L', 0))
+        except socket.error:
+            raise ConnectionError('Unable to scan stream')
+        result='...'
+        dr={}
+        while result:
+            try:
+                result = self._recv_response()
+            except socket.error:
+                raise ConnectionError('Unable to scan stream')
+            if len(result) > 0:
+                if result == 'INSTREAM size limit exceeded. ERROR':
+                    raise BufferTooLongError(result)
+                filename, reason, status = self._parse_response(result)
+                if status == 'ERROR':
+                    dr[filename] = ('ERROR', '{0}'.format(reason))
+                elif status == 'FOUND':
+                    dr[filename] = ('FOUND', '{0}'.format(reason))
+        self._close_socket()
+        if not dr:
+            return None
+        return dr
+    
+    def _send_command(self, cmd):
+        try:
+            cmd = str.encode('n{0}\n'.format(cmd))
+        except UnicodeDecodeError:
+            cmd = 'n{0}\n'.format(cmd)
+        self.clamd_socket.send(cmd)
+        return
+    
+    def _recv_response(self):
+        data = self.clamd_socket.recv(4096)
+        try:
+            response = bytes.decode(data).strip()
+        except UnicodeDecodeError:
+            response = data.strip()
+        return response
+    
+    def _recv_response_multiline(self):
+        response = ''
+        c = '...'
+        while c != '':
+            try:
+                data = self.clamd_socket.recv(4096)
+                try:
+                    c = bytes.decode(data).strip()
+                except UnicodeDecodeError:
+                    response = data.strip()
+            except socket.error:
+                break
+            response += '{0}\n'.format(c)
+        return response
+    
+    def _close_socket(self):
+        self.clamd_socket.close()
+        return
+    
+    def _parse_response(self, msg):
+        msg = msg.strip()
+        filename = msg.split(': ')[0]
+        left = msg.split(': ')[1:]
+        if isinstance(left, str):
+            result = left
+        else:
+            result = ": ".join(left)
+        if result != 'OK':
+            parts = result.split()
+            reason = ' '.join(parts[:-1])
+            status = parts[-1]
+        else:
+            reason, status = '', 'OK'
+        return filename, reason, status
+
+
+class ClamdUnixSocket(_ClamdGeneric):
+    def __init__(self, filename=None, timeout=None):
+        # try to get unix socket from clamd.conf
+        if filename is None:
+            with open('/etc/clamav/clamd.conf', 'r') as conffile:
+                for line in conffile.readlines():
+                    try:
+                        if line.strip().split()[0] == 'LocalSocket':
+                            filename = line.strip().split()[1]
+                            break
+                    except IndexError:
+                        pass
+                else:
+                    raise ConnectionError('Could not find clamd unix socket from /etc/clamav/clamd.conf')
+        assert isinstance(filename, str), 'Wrong type for [file], should be a string [was {0}]'.format(type(file))
+        assert isinstance(timeout, (float, int)) or timeout is None, 'Wrong type for [timeout], should be either None or a float [was {0}]'.format(type(timeout))
+        _ClamdGeneric.__init__(self)
+        self.unix_socket = filename
+        self.timeout = timeout
+        # tests the socket
+        self._init_socket()
+        self._close_socket()
+        return
+    
+    def _init_socket(self):
+        try:
+            self.clamd_socket = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+            self.clamd_socket.connect(self.unix_socket)
+            self.clamd_socket.settimeout(self.timeout)
+        except socket.error:
+            raise ConnectionError('Could not reach clamd using unix socket ({0})'.format((self.unix_socket)))
+        return
+
+
+class ClamdNetworkSocket(_ClamdGeneric):
+    def __init__(self, host='127.0.0.1', port=3310, timeout=None):
+        assert isinstance(host, str), 'Wrong type for [host], should be a string [was {0}]'.format(type(host))
+        assert isinstance(port, int), 'Wrong type for [port], should be an int [was {0}]'.format(type(port))
+        assert isinstance(timeout, (float, int)) or timeout is None, 'Wrong type for [timeout], should be either None or a float [was {0}]'.format(type(timeout))
+        _ClamdGeneric.__init__(self)
+        self.host = host
+        self.port = port
+        self.timeout = timeout
+        # tests the socket
+        self._init_socket()
+        self._close_socket()
+        return
+    
+    def _init_socket(self):
+        try:
+            self.clamd_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            self.clamd_socket.connect((self.host, self.port))
+            self.clamd_socket.settimeout(self.timeout)
+        except socket.error:
+            raise ConnectionError('Could not reach clamd using network ({0}, {1})'.format(self.host, self.port))
+        return
+
+
+def analyze(queue):
+    clamd = ClamdUnixSocket()
+    clamd.ping()
+    while True:
+        filename = queue.get()
+        if filename == "__TERMINATE__":
+            queue.task_done()
+            counter = 0
+            # Wait as much as 10 seconds for other threads to finish
+            while not queue.empty():
+                counter += 1
+                time.sleep(0.5)
+                if counter >= 20:
+                    queue.task_done()
+            break
+        result = clamd.multiscan_file(filename)
+        if result:
+            for filename, result in result.iteritems():
+                if result[0] == 'ERROR':
+                    sys.stderr.write('%s: IOError\n' % filename)
+                elif result[0] == 'FOUND':
+                    mutex.acquire()
+                    print filename, "[CLAMAV] [%s]" % result[1]
+                    mutex.release()
+        queue.task_done()
+
+
+if __name__ == "__main__":
+    num_threads = sys.argv[1] if len(sys.argv) == 2 else 4
+    queue = Queue(num_threads*100)
+    mutex = thread.allocate_lock()
+    for i in range(num_threads):
+        worker = Thread(target=analyze, args=(queue,))
+        worker.setDaemon(True)
+        worker.start()
+    
+    for filename in sys.stdin:
+        filename = filename.strip()
+        queue.put(filename)
+    
+    for i in range(num_threads):
+        queue.put("__TERMINATE__")
+    queue.join()
