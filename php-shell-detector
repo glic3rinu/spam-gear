@@ -88,7 +88,7 @@ def analyse(clean, dirname):
     
     for filename in sys.stdin:
         filename = filename.strip()
-        if not filename.endswith('.php'):
+        if not filename.endswith(('.php', '.html', '.htm')):
             print filename
             continue
         try:
