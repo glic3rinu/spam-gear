@@ -1,5 +1,6 @@
 #!/bin/bash
 
+
 print_help () {
     bold=$(tput bold)
     normal=$(tput sgr0)
@@ -36,8 +37,10 @@ print_help () {
 	EOF
 }
 
+
 PERIOD='1hour'
 MAX_CONNECTIONS=90
+
 
 while true; do
     case $1 in
