@@ -126,13 +126,12 @@ log=$(grep "sasl_username=" /var/log/mail.log \
             months["Dec"] = "12";
         } {
             # Dec  4 19:48:08
-            date = substr($1, 2)
             month = months[$1];
-            year = substr(from, 1, 4)
-            if ( month == 12 && substr(from, 5, 2) == 01 ) {
+            year = substr(boundary, 1, 4)
+            if ( month == 12 && substr(boundary, 5, 2) == 01 ) {
                 year = year - 1
             }
-            day = printf("%02d\n", $2)
+            day = sprintf("%02d", $2)
             hour = substr($3, 1, 2)
             minute = substr($3, 4, 2)
             second = substr($3, 7, 2)

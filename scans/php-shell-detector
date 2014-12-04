@@ -69,7 +69,6 @@ def get_fingerprints():
     """ Load and precompute fingerprints """
     dirname = os.path.dirname(os.path.realpath(__file__))
     dbpath = os.path.join(dirname, 'shelldetect.db')
-    regex_shell = re.compile('(.*)\[(.*?)\]\[(.*?)\]\[(.*?)\]')
     database = str(open(dbpath, 'r').read())
     database = base64.decodestring(database)
     
@@ -84,7 +83,8 @@ def get_fingerprints():
     return fingerprints
 
 
-def check_fingerprints(content, filename, args, fingerprints=get_fingerprints()):
+def check_fingerprints(content, filename, args, fingerprints=get_fingerprints(),
+                       regex_shell=re.compile('(.*)\[(.*?)\]\[(.*?)\]\[(.*?)\]')):
     found = False
     for fingerprint, shellname in fingerprints:
         if fingerprint.findall(content):
@@ -114,7 +114,7 @@ def check_custom(content, filename, args, custom=get_custom()):
     for num, fingerprint in custom:
         if fingerprint in content:
             found = True
-            apply_quarantine(filename, args):
+            apply_quarantine(filename, args)
             label = '[CUSTOM] [PHP.Finger.%i]' % num
             return found, label
     return found, ''
@@ -193,3 +193,4 @@ if __name__ == "__main__":
             analyse(args)
     else:
         analyse(args)
+

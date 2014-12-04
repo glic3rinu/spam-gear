@@ -116,10 +116,9 @@ log=$(grep 'Message sent to' ${LOG_PATH} \
             months["Dec"] = "12";
         } {
             # date = Dec 01 13:33:15
-            date = substr($1, 2)
             month = months[$1];
-            year = substr(from, 1, 4)
-            if ( month == 12 && substr(from, 5, 2) == 01 ) {
+            year = substr(boundary, 1, 4)
+            if ( month == 12 && substr(boundary, 5, 2) == 01 ) {
                 year = year - 1
             }
             day = $2
@@ -129,7 +128,8 @@ log=$(grep 'Message sent to' ${LOG_PATH} \
             line_date = year month day hour minute second
             if ( line_date > boundary)
                 print $0
-        }')
+        }'
+)
 
 
 period=$(echo "${PERIOD}" | sed "s/\([0-9]*\)/\1 /")
