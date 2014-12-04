@@ -1,36 +1,86 @@
 #!/bin/bash
 
-# USAGE:
-#   exim-spam-scan SECONDS DEFAULT_MAX_CONNECTIONS
+print_help () {
+    bold=$(tput bold)
+    normal=$(tput sgr0)
+    cat <<- EOF
+	
+	${bold}NAME${normal}
+	    ${bold}exim-spam-scan${normal} - Exim logs spammers reporter
+	    
+	${bold}SYNOPSIS${normal}
+	    ${bold}exim-spam-scan${normal} [ OPTION ]
+	    
+	${bold}DESCRIPTION${normal}
+	    Scans Postfix logs /var/log/mail.log looking for SASL authenticated users that make more than MAX_CONNECTIONS per time PERIOD.
+	    Covering the typical attacks on a mail server setup
+	    
+	    ${bold}-p, --period=PERIOD${normal}
+	            A DATE STRING compatible period "1hour", "1minute", etc see man date for more.
+	            Defaults to "1hour"
+	    
+	    ${bold}-m, --max-connections=MAX_CONNECTIONS${normal}
+	            Threshold value for number of connections beyond a report is made.
+	            Defaults to 90.
+	    
+	    ${bold}-h, --help${normal}
+	            Prints this help text
+	    
+	${bold}EXAMPLES${normal}
+	    exim-spam-scan
+	    
+	    exim-spam-scan -p 30minutes -m 60
+	    
+	    exim-spam-scan -d 10,10
+	    
+	EOF
+}
 
-SECONDS=${1:-3600}
-DEFAULT=${2:-60}
+PERIOD='1hour'
+MAX_CONNECTIONS=90
+
+while true; do
+    case $1 in
+        -p|--period)
+            PERIOD=${2}
+            if [[ ! $(date -d "-${PERIOD}" 2> /dev/null) ]]; then
+                echo "${PERIOD}: Unsuported DATE STRING" >&2
+                exit 2
+            fi
+            shift; shift ;;
+        -m|--max-connections)
+            MAX_CONNECTIONS=${2}
+            if ! [[ $MAX_CONNECTIONS =~ ^[0-9]+$ ]]; then
+                echo "${MAX_CONNECTIONS}: Is not a number" >&2
+                exit 2
+            fi
+            shift; shift ;;
+        -h|--help) print_help; exit 0 ;;
+        -*) echo "$0: Unrecognized option $1" >&2; exit 2 ;;
+        *) break ;;
+    esac
+done
 
 
-log=$(grep '<=' /var/log/exim4/mainlog | awk -v SECONDS=$SECONDS '
-    BEGIN {
-        now = systime()
-        current = strftime("%y:%m:%d:%H:%m:%S", now)
-        boundary = SECONDS
-    } {
+log=$(grep '<=' /var/log/exim4/mainlog \
+    | awk -v boundary="$(date '+%Y%m%d%H%M%S' -d -${PERIOD})" '{
+        # 2014-12-04 22:56:50
         column1 = $1
         column2 = $2
         split(column1, d, "-")
         split(column2, t, ":")
-        logtime = sprintf("%s %s %s %s %s %s", d[1], d[2], d[3], t[1], t[2], t[3])
-        log_entry_time = mktime(logtime)
-        if ( now - log_entry_time <= boundary ){
+        line_date = d[1] d[2] d[3] t[1] t[2] t[3]
+        if ( line_date > boundary )
             print $0
-        }
-    }'
-)
+    }')
 
 
-period="$SECONDS seconds"
-message="During the last $period the following senders have made at least $DEFAULT SMTP connections."
+period=$(echo "${PERIOD}" | sed "s/\([0-9]*\)/\1 /")
+message="During the last $period the following senders have made at least $MAX_CONNECTIONS SMTP connections."
 sent=false
 declare -A max_conn
 overrides="$(dirname $(readlink -f "$0"))/exim-spam-scan.overrides"
+
 
 if [[ -e "${overrides}" ]]; then
     while read line; do
@@ -47,7 +97,7 @@ while read line; do
     line=( ${line} )
     conn=${line[0]}
     user=${line[1]}
-    if [[ ${conn} -gt ${max_conn[$user]:-$DEFAULT} ]]; then
+    if [[ ${conn} -gt ${max_conn[$user]:-$MAX_CONNECTIONS} ]]; then
         if [[ $sent = false ]]; then
             echo -e "${message}\n"
             sent=true
@@ -63,7 +113,7 @@ while read line; do
     line=( ${line} )
     conn=${line[0]}
     user=${line[1]}
-    if [[ ${conn} -gt ${max_conn[$user]:-$DEFAULT} ]]; then
+    if [[ ${conn} -gt ${max_conn[$user]:-$MAX_CONNECTIONS} ]]; then
         if [[ $sent = false ]]; then
             echo -e "${message}\n"
             sent=true
