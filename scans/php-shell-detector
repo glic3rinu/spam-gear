@@ -4,13 +4,11 @@
 # Shorter, more robust and faster
 # How fast? 3m12.543s vs 0m19.876s ;)
 
-# USAGES
-#   find . -type f | python php-shell-detector.py
-#   python php-shell-detector.py updatedb
 
-
+import argparse
 import os
 import re
+import shutil
 import sys
 import base64
 import urllib2
@@ -46,7 +44,8 @@ def unserialize(s):
     return methods[s[0].lower()](s[2:])
 
 
-def updatedb(dirname):
+def updatedb():
+    dirname = os.path.dirname(os.path.realpath(__file__))
     dbpath = os.path.join(dirname, 'shelldetect.db')
     url = 'https://raw.github.com/emposha/PHP-Shell-Detector/master/shelldetect.db'
     database = urllib2.urlopen(url).read()
@@ -60,23 +59,13 @@ def updatedb(dirname):
     sys.exit(0)
 
 
-def analyse(clean, dirname):
-    # Load and precompute fingerprints
+def get_fingerprints():
+    """ Load and precompute fingerprints """
+    dirname = os.path.dirname(os.path.realpath(__file__))
     dbpath = os.path.join(dirname, 'shelldetect.db')
     regex_shell = re.compile('(.*)\[(.*?)\]\[(.*?)\]\[(.*?)\]')
     database = str(open(dbpath, 'r').read())
     database = base64.decodestring(database)
-    
-    backdoorspath = os.path.join(dirname, 'backdoors.re')
-    backdoor_regex = re.compile(r'eval\s*\(\s*base64_decode.*_POST')
-    backdoors = []
-    for num, backdoor in enumerate(open(backdoorspath, 'r')):
-        backdoors.append((num, re.compile(backdoor.strip())))
-    
-    custom_path = os.path.join(dirname, 'fingerprints.txt')
-    custom = []
-    for num, fingerprint in enumerate(open(custom_path, 'r')):
-        custom.append((num, fingerprint.strip()))
     
     fingerprints = []
     for fingerprint, shellname in unserialize(database)[0].iteritems():
@@ -86,8 +75,33 @@ def analyse(clean, dirname):
             fingerprint = bytes(fingerprint.replace('bb:', ''))
             fingerprint = base64.decodestring(fingerprint)
         fingerprints.append([re.compile(re.escape(fingerprint)), shellname])
-    
-    # Do the scanning
+    return fingerprints
+
+
+def get_custom():
+    dirname = os.path.dirname(os.path.realpath(__file__))
+    custom_path = os.path.join(dirname, 'fingerprints.txt')
+    custom = []
+    for num, fingerprint in enumerate(open(custom_path, 'r')):
+        custom.append((num, fingerprint.strip()))
+    return custom
+
+
+def get_backdoors():
+    dirname = os.path.dirname(os.path.realpath(__file__))
+    backdoorspath = os.path.join(dirname, 'backdoors.re')
+    backdoor_regex = re.compile(r'eval\s*\(\s*base64_decode.*_POST')
+    backdoors = []
+    for num, backdoor in enumerate(open(backdoorspath, 'r')):
+        backdoors.append((num, re.compile(backdoor.strip())))
+    return backdoors
+
+
+# TODO split into functions
+def analyse(args):
+    backdoors = get_backdoors()
+    fingerprints = get_fingerprints()
+    custom = get_custom()
     for filename in sys.stdin:
         filename = filename.strip()
         if not filename.endswith(('.php', '.html', '.htm')):
@@ -106,6 +120,9 @@ def analyse(clean, dirname):
             for num, fingerprint in custom:
                 if fingerprint in content:
                     found = True
+                    if args.quarantine is not None:
+                        dst = os.path.join(args.quarantine, os.path.basename(filename))
+                        shutil.move(filename, dst)
                     print filename, '[CUSTOM] [PHP.Finger.%i]' % num
                     break
             if not found:
@@ -120,6 +137,9 @@ def analyse(clean, dirname):
                             last = filename, label
                         else:
                             found = True
+                            if args.quarantine is not None:
+                                dst = os.path.join(args.quarantine, os.path.basename(filename))
+                                shutil.move(filename, dst)
                             print filename, label
                         break
             if not found:
@@ -127,7 +147,7 @@ def analyse(clean, dirname):
                 for num, backdoor in backdoors:
                     if backdoor.search(content):
                         found = True
-                        if clean:
+                        if args.clean:
                             content = backdoor.sub('', content)
                             with open(filename, 'wt') as f:
                                 f.write(content)
@@ -146,12 +166,20 @@ def analyse(clean, dirname):
 
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description='Process some integers.')
+    parser.add_argument('-q', '--quarantine', metavar='PATH', dest='quarantine', type=str, nargs='?',
+                       const='/root/shells/',
+                       help='Enables quarantine of malicious files. Optional quarantine path.')
+    parser.add_argument('-c', '--clean', dest='clean', action='store_true',
+                       default=False, help='Clean infected files (backdoors).')
+    parser.add_argument('-u', '--update', dest='update', action='store_true',
+                       default=False, help='Update database')
+    args = parser.parse_args()
+    
     dirname = os.path.dirname(os.path.realpath(__file__))
-    clean = False
-    if len(sys.argv) == 2 and sys.argv[1] == 'updatedb':
-        updatedb(dirname)
-    elif len(sys.argv) == 2 and sys.argv[1] == '-c':
-        clean = True
-        analyse(clean, dirname)
+    if args.update:
+        updatedb()
+        if args.clean or args.quarantine:
+            analyse(args)
     else:
-        analyse(clean, dirname)
+        analyse(args)

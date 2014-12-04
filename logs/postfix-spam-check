@@ -36,7 +36,7 @@ print_help () {
 	            It usses SSH and MASTER_SERVER defaults to localhost.
 	    
 	    ${bold}-w, --webmail=WEBMAIL_IP${normal}
-	            Webmail IP address
+	            Comma separated webmail IP addresses
 	    
 	    ${bold}-h, --help${normal}
 	            Prints this help text
@@ -57,7 +57,7 @@ MAX_CONNECTIONS=90
 disable=false
 nis=false
 NIS_SERVER='localhost'
-WEBMAIL_IP=false
+WEBMAIL_IP_REGEX=false
 
 while true; do
     case $1 in
@@ -92,11 +92,15 @@ while true; do
             fi
             shift ;;
         -w|--webmail)
-            WEBMAIL_IP=${2}
-            if ! [[ $WEBMAIL_IP =~ ^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$ ]]; then
-                echo "${WEBMAIL_IP}: Is not an IP address" >&2
-                exit 2
-            fi
+            webmail_ips=( ${2//,/ } )
+            for IP in ${webmail_ips[@]}; do
+                if ! [[ $IP =~ ^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$ ]]; then
+                    echo "${webmail_ips}: Is not an IP address" >&2
+                    exit 2
+                fi
+            done
+            WEBMAIL_IP_REGEX=$(printf "|%s" "${webmail_ips[@]}")
+            WEBMAIL_IP_REGEX=${WEBMAIL_IP_REGEX:1}
             shift; shift ;;
         -h|--help) print_help; exit 0 ;;
         -*) echo "$0: Unrecognized option $1" >&2; exit 2 ;;
@@ -125,7 +129,7 @@ while read line; do
         numips=$(echo "${userlogs}" | cut -d'[' -f3 | cut -d']' -f1 | sort | uniq | wc -l)
         unknowns=$(echo "${userlogs}" | grep 'client=unknown\[' \
                 | cut -d'[' -f3 | cut -d']' -f1 | sort | uniq | wc -l)
-        webmail=$(echo "${userlogs}" | grep -E "client=[A-Za-z0-9\-\.]+\[${WEBMAIL_IP}\]," | wc -l)
+        webmail=$(echo "${userlogs}" | grep -E "client=[A-Za-z0-9\-\.]+\[${WEBMAIL_IP_REGEX}\]," | wc -l)
         nets=$(echo "${userlogs}" | cut -d'[' -f2 | cut -d'=' -f2 \
                 | sed "s/.*[0-9].//" | sort | uniq | wc -l)
         if [[ $found = false ]]; then

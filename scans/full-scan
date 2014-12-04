@@ -48,7 +48,7 @@ QUARANTINE=false
 QUARANTINE_DIR='/root/shells'
 NOTIFY=false
 USERNAME_PATTERN='^/home/\([^/.]*\)/.*'
-EMAIL_PATH=$(dirname $(readlink -f $0))/default_shell_nofification.email
+EMAIL_PATH=$(dirname $0)/default_shell_nofification.email
 while true; do
     case $1 in
         -q|--quarantine)
@@ -117,9 +117,9 @@ function process_shell () {
 
 
 {
-    clean=''
+    args=''
     if [[ $QUARANTINE = true ]]; then
-        clean='-c'
+        args="-c -q ${QUARANTINE_DIR}"
     fi
     while read line; do
         filename=$(echo "${line}" | cut -d'[' -f1)
@@ -127,14 +127,9 @@ function process_shell () {
             echo "${line}" >&3
             continue
         fi
-        # Convention: do nothing when php-shell-detector reports cleaning or non-cleaning
-        if [[ "${line}" == *\[CLEANED\] || "${line}" == *\[NON-CLEANED\] ]]; then
-            process_shell "${filename}" false
-        else
-            process_shell "${filename}"
-        fi
+        process_shell "${filename}" false
         echo "${line}"
-    done < <(cat - | { ${dir}/php-shell-detector ${clean} 2>&1 1>&4 | grep -v 'IOError' 1>&2; } 4>&1)
+    done < <(cat - | { ${dir}/php-shell-detector ${args} 2>&1 1>&4 | grep -v 'IOError' 1>&2; } 4>&1)
     exit $found
 } < <(cat -) 3> $pipe &
 
@@ -145,6 +140,7 @@ trap 'rm -f $pipe $pending; kill $pid; exit 1;' INT TERM HUP
 
 {
     while read line; do
+        # TODO make this more robust
         filename=$(echo "${line}" | cut -d'[' -f1)
         process_shell "${filename}"
         echo "${line}"

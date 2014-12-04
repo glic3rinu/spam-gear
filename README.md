@@ -44,24 +44,25 @@ This is how some of our crontabs look like:
 
 ```bash
 # Web server crontab
-
-PATH=$PATH:/root/spam-gear/bin
-0    * * * *   exim-spam-scan 3600 60 | emergency-mail 2000
-*/10 * * * *   { php-spam-legacy 10 10 && php-spam 500; } | php-shell-scan -q
-0    0 * * *   php-shell-detector updatedb
-
-# For us this is very expensive because our home is mounted from a SAN and
-# transversal reads of the whole FS invalidates most of the FS cache :(
-php_shell_scan="php-shell-scan -q -n '^/home/pangea/\([^/.]*\)/.*' -c /root/spam-gear/user_alert.email"
-30   2 * * 6   find /home/pangea -type f | ${php_shell_scan}
-30   5 * * 0-5 find /home/pangea/ -mtime -2 -iname "*php" | ${php_shell_scan}
+PATH=${PATH}:/root/spam-gear/bin
+SHELL=/bin/bash
+0    * * * *   exim-spam-check 3600 90 | emergency-mail 2000
+0,30 * * * *   roundcube-spam-check -p 1hour -m 60 -d 10,10 -n web.pangea.org | emergency-mail 3000
+0,30 * * * *   imp-spam-check -p 1hour -m 60 -d 10,10 -n web.pangea.org | emergency-mail 3000
+*/10 * * * *   { php-spam-legacy 10 10 && php-spam 500; } \
+                | full-scan -q -n '^/home/pangea/\([^/.]*\)/.*' -c /root/spam-gear/scan/alerta_pangea.email
+0    0 * * *   php-shell-detector --update
+30   2 * * 6   find /home/pangea/ -type f -size -5M \
+                | full-scan -q -n "^/home/pangea/\([^/.]*\)/.*" -c /root/spam-gear/scan/alerta_pangea.email
+30   5 * * 0-5 find /home/pangea/ -type f -mtime -2 -iname "*php" \
+                | full-scan -q -n "^/home/pangea/\([^/.]*\)/.*" -c /root/spam-gear/scan/alerta_pangea.email
 ```
 
 ```bash
 # Mail server crontab
 
 PATH=$PATH:/root/spam-gear/bin
-0 * * * * postfix-spam-scan -m 90 -d 10,10 -n auth.ourdomain.org | emergency-mail 3000
+0,30 * * * * postfix-spam-scan -p 1hour -m 90 -d 10,10 -n web.pangea.org -w 77.246.181.201,10.0.0.21 | emergency-mail 3000
 ```
 
 
