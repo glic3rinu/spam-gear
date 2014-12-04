@@ -2,7 +2,7 @@
 
 Anti-spam artillery for your multi-user web and mail servers.
 
-This project consists of a handful of tools that, once combined, try to provide a good enough solution to two unsolvable problems.
+This project consists of a handful of tools that, once combined, provide a good enough solution to two unsolvable problems.
 
 1. Spammers sending spam through compromised PHP web applications on shared hosting environments
 2. Spammers sending spam via stolen e-mail credentials
@@ -29,8 +29,8 @@ git clone https://github.com/glic3rinu/spam-gear.git
     * [php-shell-detector](scans/php-shell-detector) - Rewrite of [Shell-Detector](https://github.com/emposha/Shell-Detector)
 * [Utils](utils) - Miscellaneous directory
     * [emergency-mail](utils/emergency-mail) - SMTP client for sending emails outside
-    * [check_dnsbl.sh](utils/check_dnsbl.sh) - Black list checker
-    * [runav.sh](utils/runav.sh) - Full scan wrapper for modsecurity
+    * [check_dnsbl.sh](utils/check_dnsbl.sh) - Nagios black list checker
+    * [runav.sh](utils/runav.sh) - full-scan wrapper for modsecurity
 
 
 ## Crontab examples
