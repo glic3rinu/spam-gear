@@ -129,7 +129,7 @@ def get_backdoors():
     return backdoors
 
 
-def check_backdoors(content, filename, backdoors=get_backdoors(),
+def check_backdoors(content, filename, args, backdoors=get_backdoors(),
                     backdoor_regex=re.compile(r'eval\s*\(\s*base64_decode.*_POST')):
     found = False
     label = ''
@@ -168,7 +168,7 @@ def analyse(args):
             if not found:
                 found, label = check_fingerprints(content, filename, args)
             if not found:
-                found, label = check_backdoors(content, filename)
+                found, label = check_backdoors(content, filename, args)
             if label:
                 print filename, label
             else:
