@@ -30,7 +30,7 @@ git clone https://github.com/glic3rinu/spam-gear.git
     * [php-legacy-spam-check](logs/php-spam-legacy-check)
 * [Filesystem scan tools](scans) - Check the filesystem for identifying spam software
     * [full-scan](scans/full-scan) - Wrapper for clamd-client and php-shell-detector
-    * [clamd-client](scans/clamd-client) - Clamd python client
+    * [clamd-client](scans/clamd-client) - Python client for [Clamd](http://www.clamav.net)
     * [php-shell-detector](scans/php-shell-detector) - Rewrite of [Shell-Detector](https://github.com/emposha/Shell-Detector)
 * [Utils](utils)
     * [emergency-mail](utils/emergency-mail) - SMTP client for sending emails outside
