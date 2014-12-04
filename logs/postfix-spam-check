@@ -1,5 +1,6 @@
 #!/bin/bash
 
+# TODO add support for multiple webmail ips 10.0.0.21
 
 print_help () {
     bold=$(tput bold)

@@ -137,7 +137,7 @@ found=false
 while read line; do
     current=( ${line} )
     if [[ ${current[0]} != "" && ${current[0]} -ge $MAX_CONNECTIONS ]]; then
-        userlogs=$(echo "${log}" | grep "User ${current[5]} \[")
+        userlogs=$(echo "${log}" | grep "User ${current[1]} \[")
         logentry=$(echo "${userlogs}" | head -n1)
         ips=$(echo "${userlogs}" | cut -d'[' -f3 | cut -d']' -f1 | sort | uniq)
         nets=$(echo "${ips}" | xargs -i nslookup {} \

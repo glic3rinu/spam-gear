@@ -30,7 +30,7 @@ period="$SECONDS seconds"
 message="During the last $period the following senders have made at least $DEFAULT SMTP connections."
 sent=false
 declare -A max_conn
-overrides="$(dirname $0)/exim-spam-scan.overrides"
+overrides="$(dirname $(readlink -f "$0"))/exim-spam-scan.overrides"
 
 if [[ -e "${overrides}" ]]; then
     while read line; do
