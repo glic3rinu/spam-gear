@@ -44,6 +44,12 @@ def unserialize(s):
     return methods[s[0].lower()](s[2:])
 
 
+def apply_quarantine(filename, args):
+    if args.quarantine is not None:
+        dst = os.path.join(args.quarantine, os.path.basename(filename))
+        shutil.move(filename, dst)
+
+
 def updatedb():
     dirname = os.path.dirname(os.path.realpath(__file__))
     dbpath = os.path.join(dirname, 'shelldetect.db')
@@ -78,6 +84,22 @@ def get_fingerprints():
     return fingerprints
 
 
+def check_fingerprints(content, filename, args, fingerprints=get_fingerprints()):
+    found = False
+    for fingerprint, shellname in fingerprints:
+        if fingerprint.findall(content):
+            shell = regex_shell.findall(shellname)[0]
+            label = "[DETECTOR] [%s]" % shell[0]
+            # These usually are false positive
+            if shell[2] not in ['0', '1']:
+                label += ' [NON-CLEANED]'
+            else:
+                found = True
+                apply_quarantine(filename, args)
+            return found, label
+    return found, ''
+
+
 def get_custom():
     dirname = os.path.dirname(os.path.realpath(__file__))
     custom_path = os.path.join(dirname, 'fingerprints.txt')
@@ -87,21 +109,47 @@ def get_custom():
     return custom
 
 
+def check_custom(content, filename, args, custom=get_custom()):
+    found = False
+    for num, fingerprint in custom:
+        if fingerprint in content:
+            found = True
+            apply_quarantine(filename, args):
+            label = '[CUSTOM] [PHP.Finger.%i]' % num
+            return found, label
+    return found, ''
+
+
 def get_backdoors():
     dirname = os.path.dirname(os.path.realpath(__file__))
     backdoorspath = os.path.join(dirname, 'backdoors.re')
-    backdoor_regex = re.compile(r'eval\s*\(\s*base64_decode.*_POST')
     backdoors = []
     for num, backdoor in enumerate(open(backdoorspath, 'r')):
         backdoors.append((num, re.compile(backdoor.strip())))
     return backdoors
 
 
-# TODO split into functions
+def check_backdoors(content, filename, backdoors=get_backdoors(),
+                    backdoor_regex=re.compile(r'eval\s*\(\s*base64_decode.*_POST')):
+    found = False
+    label = ''
+    for num, backdoor in backdoors:
+        if backdoor.search(content):
+            found = True
+            if args.clean:
+                content = backdoor.sub('', content)
+                with open(filename, 'wt') as f:
+                    f.write(content)
+                label = '[CUSTOM] [PHP.Backdoor.%i] [CLEANED]' % num
+            else:
+                label = '[CUSTOM] [PHP.Backdoor.%i]' % num
+            return found, label
+    if backdoor_regex.search(content):
+        label = '[CUSTOM] [Php.Backdoor] [NON-CLEANED]'
+    return found, label
+
+
 def analyse(args):
-    backdoors = get_backdoors()
-    fingerprints = get_fingerprints()
-    custom = get_custom()
     for filename in sys.stdin:
         filename = filename.strip()
         if not filename.endswith(('.php', '.html', '.htm')):
@@ -116,52 +164,14 @@ def analyse(args):
             found = False
             last = ''
             content = str(f.read())
-            # Check custom fingerprints
-            for num, fingerprint in custom:
-                if fingerprint in content:
-                    found = True
-                    if args.quarantine is not None:
-                        dst = os.path.join(args.quarantine, os.path.basename(filename))
-                        shutil.move(filename, dst)
-                    print filename, '[CUSTOM] [PHP.Finger.%i]' % num
-                    break
+            found, label = check_custom(content, filename, args)
             if not found:
-                # Check php-shell-detector
-                for fingerprint, shellname in fingerprints:
-                    if fingerprint.findall(content):
-                        shell = regex_shell.findall(shellname)[0]
-                        label = "[DETECTOR] [%s]" % shell[0]
-                        if shell[2] not in ['0', '1']:
-                            # These usually are false positive
-                            label += ' [NON-CLEANED]'
-                            last = filename, label
-                        else:
-                            found = True
-                            if args.quarantine is not None:
-                                dst = os.path.join(args.quarantine, os.path.basename(filename))
-                                shutil.move(filename, dst)
-                            print filename, label
-                        break
+                found, label = check_fingerprints(content, filename, args)
             if not found:
-                # Check custom backdoors
-                for num, backdoor in backdoors:
-                    if backdoor.search(content):
-                        found = True
-                        if args.clean:
-                            content = backdoor.sub('', content)
-                            with open(filename, 'wt') as f:
-                                f.write(content)
-                            print filename, '[CUSTOM] [PHP.Backdoor.%i] [CLEANED]' % num
-                        else:
-                            print filename, '[CUSTOM] [PHP.Backdoor.%i]' % num
-                        break
-                else:
-                    if backdoor_regex.search(content):
-                        last = filename, '[CUSTOM] [Php.Backdoor] [NON-CLEANED]'
-            if not found:
-                if last != '':
-                    filename, label = last
-                    print filename, label
+                found, label = check_backdoors(content, filename)
+            if label:
+                print filename, label
+            else:
                 print filename
 
 
