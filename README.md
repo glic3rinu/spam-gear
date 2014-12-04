@@ -21,21 +21,21 @@ git clone https://github.com/glic3rinu/spam-gear.git
 
 ## Contents
 
-* [Log analyisis](logs) tools
+* [Log analyisis tools](logs) - Check logs for identifying spammers
     * [postfix-spam-check](logs/postfix-spam-check)
     * [exim-spam-check](logs/exim-spam-check)
     * [roundcube-spam-check](logs/roundcube-spam-check)
     * [imp-spam-check](logs/imp-spam-check)
     * [php-spam-check](logs/php-legacy-check)
     * [php-legacy-spam-check](logs/php-spam-legacy-check)
-* [Filesystem scan] tools
-    * [full-scan](scans/full-scan)
-    * [clamd-client](scans/clamd-client)
-    * [php-shell-detector](scans/php-shell-detector)
+* [Filesystem scan tools](scans) - Check the filesystem for identifying spam software
+    * [full-scan](scans/full-scan) - Wrapper for clamd-client and php-shell-detector
+    * [clamd-client](scans/clamd-client) - Clamd python client
+    * [php-shell-detector](scans/php-shell-detector) - Rewrite of [Shell-Detector](https://github.com/emposha/Shell-Detector)
 * [Utils](utils)
-    * [emergency-mail](utils/emergency-mail)
-    * [check_dnsbl.sh](utils/check_dnsbl.sh) Black list checker
-    * [runav.sh](utils/runav.sh) full scan wrapper for modsecurity
+    * [emergency-mail](utils/emergency-mail) - SMTP client for sending emails outside
+    * [check_dnsbl.sh](utils/check_dnsbl.sh) - Black list checker
+    * [runav.sh](utils/runav.sh) - Full scan wrapper for modsecurity
 
 
 ## Crontab examples
