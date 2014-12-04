@@ -1,7 +1,11 @@
 #!/bin/bash
 
 
-# TODO modsecurity util/runav.pl
+# TODO php-shell-detector quarantine support and call it: php-shell-detector -c -q $QUARANTINE_DIR
+# TODO rename programs different the php-shell-* to avoid confussions 
+# TODO create folders: nagios/php/mod_security/email/etc
+# TODO postfix/Exim display the most used address
+# TODO better awk log processing to avoid problems when chnaging month: Nov -> Dec
 
 print_help () {
     bold=$(tput bold)
@@ -121,12 +125,12 @@ function process_shell () {
     clean=''
     [[ $QUARANTINE = true ]] && clean='-c'
     while read line; do
-        current=( ${line} )
-        filename=${current[0]}
+        filename=$(echo "${line}" | cut -d'[' -f1)
         if [[ "${line}" != *\] ]]; then
             echo "${line}" >&3
             continue
         fi
+        # Convention: do nothing when php-shell-detector reports cleaning or non-cleaning
         if [[ "${line}" == *\[CLEANED\] || "${line}" == *\[NON-CLEANED\] ]]; then
             process_shell "${filename}" false
         else
@@ -144,13 +148,11 @@ trap 'rm -f $pipe $pending; kill $pid; exit 1;' INT TERM HUP
 
 {
     while read line; do
-        current=( ${line} )
-        filename=${current[0]}
+        filename=$(echo "${line}" | cut -d'[' -f1)
         process_shell "${filename}"
         echo "${line}"
     done < <(cat - | { ${dir}/clamd-client 2>&1 1>&4 | grep -v 'IOError' 1>&2; } 4>&1)
 } < $pipe
-
 
 clam_found=$found
 wait %1

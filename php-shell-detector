@@ -61,6 +61,7 @@ def updatedb(dirname):
 
 
 def analyse(clean, dirname):
+    # Load and precompute fingerprints
     dbpath = os.path.join(dirname, 'shelldetect.db')
     regex_shell = re.compile('(.*)\[(.*?)\]\[(.*?)\]\[(.*?)\]')
     database = str(open(dbpath, 'r').read())
@@ -86,6 +87,7 @@ def analyse(clean, dirname):
             fingerprint = base64.decodestring(fingerprint)
         fingerprints.append([re.compile(re.escape(fingerprint)), shellname])
     
+    # Do the scanning
     for filename in sys.stdin:
         filename = filename.strip()
         if not filename.endswith('.php'):
@@ -106,13 +108,14 @@ def analyse(clean, dirname):
                     found = True
                     print filename, '[CUSTOM] [PHP.Finger.%i]' % num
                     break
-            else:
+            if not found:
                 # Check php-shell-detector
                 for fingerprint, shellname in fingerprints:
                     if fingerprint.findall(content):
                         shell = regex_shell.findall(shellname)[0]
                         label = "[DETECTOR] [%s]" % shell[0]
                         if shell[2] not in ['0', '1']:
+                            # These usually are false positive
                             label += ' [NON-CLEANED]'
                             last = filename, label
                         else:
@@ -128,14 +131,17 @@ def analyse(clean, dirname):
                             content = backdoor.sub('', content)
                             with open(filename, 'wt') as f:
                                 f.write(content)
-                        print filename, '[CUSTOM] [PHP.Backdoor.%i]' % num
+                            print filename, '[CUSTOM] [PHP.Backdoor.%i] [CLEANED]' % num
+                        else:
+                            print filename, '[CUSTOM] [PHP.Backdoor.%i]' % num
                         break
                 else:
                     if backdoor_regex.search(content):
                         last = filename, '[CUSTOM] [Php.Backdoor] [NON-CLEANED]'
             if not found:
                 if last != '':
-                    print last[0], last[1]
+                    filename, label = last
+                    print filename, label
                 print filename
 
 
