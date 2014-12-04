@@ -41,7 +41,7 @@ This is how some of our crontabs look like:
 PATH=${PATH}:/root/spam-gear/bin
 SHELL=/bin/bash
 FULL_SCAN="full-scan --quarantine --custom-email /root/spam-gear/scan/alert.email"
-0    * * * *   exim-spam-check --period 1hour --max-connections 90 | emergency-mail 2000
+0    * * * *   exim-spam-check -p 1hour --max-connections 90 | emergency-mail 2000
 0,30 * * * *   roundcube-spam-check -p 1hour -m 60 --disable 10,10 --nis localhost \
                 | emergency-mail 3000
 0,30 * * * *   imp-spam-check -p 1hour -m 60 --disable 10,10 --nis localhost \
@@ -55,6 +55,6 @@ FULL_SCAN="full-scan --quarantine --custom-email /root/spam-gear/scan/alert.emai
 ```bash
 # Mail server crontab
 PATH=$PATH:/root/spam-gear/bin
-0,30 * * * * postfix-spam-scan -p 1hour -m 90 -d 10,10 -n nis.example.org -w 10.26.181.21,10.0.0.21 \
+0,30 * * * * postfix-spam-scan -p 1hour -m 90 -d 10,10 -n 10.0.0.21 -w 10.0.0.21 \
                 | emergency-mail 3000
 ```
