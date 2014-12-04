@@ -1,12 +1,6 @@
 #!/bin/bash
 
 
-# TODO php-shell-detector quarantine support and call it: php-shell-detector -c -q $QUARANTINE_DIR
-# TODO rename programs different the php-shell-* to avoid confussions 
-# TODO create folders: nagios/php/mod_security/email/etc
-# TODO postfix/Exim display the most used address
-# TODO better awk log processing to avoid problems when chnaging month: Nov -> Dec
-
 print_help () {
     bold=$(tput bold)
     normal=$(tput sgr0)
@@ -107,6 +101,7 @@ found=125
 declare -A notifications
 initial_time=$(date +%s)
 
+
 function process_shell () {
     local filename=$1
     local delete=${2:-true}
@@ -123,7 +118,9 @@ function process_shell () {
 
 {
     clean=''
-    [[ $QUARANTINE = true ]] && clean='-c'
+    if [[ $QUARANTINE = true ]]; then
+        clean='-c'
+    fi
     while read line; do
         filename=$(echo "${line}" | cut -d'[' -f1)
         if [[ "${line}" != *\] ]]; then
@@ -159,18 +156,6 @@ wait %1
 detector_found=$?
 
 
-if [[ $detector_found -eq 126 || $clam_found -eq 126 ]]; then
-    # Show performance metrics if malicious files have been found
-    convertsecs() {
-        ((h=${1}/3600)) && echo -n "${h} hours "
-        ((m=(${1}%3600)/60)) && echo -n "${m} minutes "
-        ((s=${1}%60)) && echo -n "${s} seconds"
-    }
-    total_time=$(($(date +%s) - $initial_time))
-    echo "" >&2
-    echo "TOTAL TIME: $(convertsecs $total_time)" >&2
-fi
-
 if [[ $NOTIFY = true && -e ${pending} ]]; then
     # Send pending user notifications if any
     while read line; do
@@ -187,3 +172,19 @@ if [[ $NOTIFY = true && -e ${pending} ]]; then
         echo "${email}" | sendmail -i -t
     done
 fi
+
+
+if [[ $detector_found -eq 126 || $clam_found -eq 126 ]]; then
+    # Show performance metrics if malicious files have been found
+    convertsecs() {
+        ((h=${1}/3600)) && echo -n "${h} hours "
+        ((m=(${1}%3600)/60)) && echo -n "${m} minutes "
+        ((s=${1}%60)) && echo -n "${s} seconds"
+    }
+    total_time=$(($(date +%s) - $initial_time))
+    echo "" >&2
+    echo "TOTAL TIME: $(convertsecs $total_time)" >&2
+    exit 1
+fi
+
+exit 0

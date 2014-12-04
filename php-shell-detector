@@ -90,7 +90,7 @@ def analyse(clean, dirname):
     # Do the scanning
     for filename in sys.stdin:
         filename = filename.strip()
-        if not filename.endswith('.php'):
+        if not filename.endswith(('.php', '.html', '.htm')):
             print filename
             continue
         try:
@@ -152,5 +152,6 @@ if __name__ == "__main__":
         updatedb(dirname)
     elif len(sys.argv) == 2 and sys.argv[1] == '-c':
         clean = True
+        analyse(clean, dirname)
     else:
         analyse(clean, dirname)

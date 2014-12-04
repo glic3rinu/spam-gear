@@ -227,3 +227,9 @@ php_shell_scan="php-shell-scan -q -n '^/home/pangea/\([^/.]*\)/.*' -c /root/spam
 PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/root/spam-gear
 0 * * * * postfix-spam-scan -m 90 -d 10,10 -n auth.ourdomain.org | emergency-mail 3000
 ```
+
+
+## TODO
+- Document using spam-gear with apache2-modsecurity:
+    - SecRule FILES_TMPNAMES "@inspectFile /root/spam-gear/runav.sh" "id:159,phase:2,t:none,log,deny,msg:'Malicious Code Detected, access denied'"
+- Threshold on number of recipients
