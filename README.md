@@ -5,7 +5,7 @@ Anti-spam artillery for your multi-user web and mail servers.
 This project consists of a handful of tools that, once combined, provide a good enough solution to two unsolvable problems.
 
 1. Spammers sending spam through compromised PHP web applications on shared hosting environments
-2. Spammers sending spam via stolen e-mail credentials
+2. Spammers sending spam using stolen e-mail credentials
 
 
 ## Installation
@@ -34,8 +34,6 @@ git clone https://github.com/glic3rinu/spam-gear.git
 
 
 ## Crontab examples
-This is how some of our crontabs look like:
-
 ```bash
 # Web server crontab
 PATH=${PATH}:/root/spam-gear/bin
