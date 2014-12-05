@@ -21,7 +21,7 @@ git clone https://github.com/glic3rinu/spam-gear.git
 
 ## Contents
 
-* [Log analyisis tools](logs) - Check logs for identifying spammers
+* [Log analysis tools](logs) - Check logs for identifying spammers
     * [postfix-spam-check](logs/postfix-spam-check)
     * [exim-spam-check](logs/exim-spam-check)
     * [roundcube-spam-check](logs/roundcube-spam-check)
