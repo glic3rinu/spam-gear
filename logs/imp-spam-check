@@ -100,7 +100,7 @@ done
 
 
 log=$(grep 'Message sent to' ${LOG_PATH} \
-    | awk -v from="$(date '+%Y%m%d%H%M%S' -d -${PERIOD})" -v to="$(date '+%Y%m%d%H%M%S')" \
+    | awk -v boundary="$(date '+%Y%m%d%H%M%S' -d -${PERIOD})" \
         'BEGIN {
             months["Jan"] = "01";
             months["Feb"] = "02";
@@ -116,10 +116,9 @@ log=$(grep 'Message sent to' ${LOG_PATH} \
             months["Dec"] = "12";
         } {
             # date = Dec 01 13:33:15
-            date = substr($1, 2)
             month = months[$1];
-            year = substr(from, 1, 4)
-            if ( month == 12 && substr(from, 5, 2) == 01 ) {
+            year = substr(boundary, 1, 4)
+            if ( month == 12 && substr(boundary, 5, 2) == 01 ) {
                 year = year - 1
             }
             day = $2
@@ -127,9 +126,10 @@ log=$(grep 'Message sent to' ${LOG_PATH} \
             minute = substr($3, 4, 2)
             second = substr($3, 7, 2)
             line_date = year month day hour minute second
-            if ( line_date > from && line_date < to)
+            if ( line_date > boundary)
                 print $0
-        }')
+        }'
+)
 
 
 period=$(echo "${PERIOD}" | sed "s/\([0-9]*\)/\1 /")

@@ -99,7 +99,7 @@ while true; do
 done
 
 
-log=$(awk -v from="$(date '+%Y%m%d%H%M%S' -d -${PERIOD})" -v to="$(date '+%Y%m%d%H%M%S')" \
+log=$(awk -v boundary="$(date '+%Y%m%d%H%M%S' -d -${PERIOD})" \
         'BEGIN {
             months["Jan"] = "01";
             months["Feb"] = "02";
@@ -124,7 +124,7 @@ log=$(awk -v from="$(date '+%Y%m%d%H%M%S' -d -${PERIOD})" -v to="$(date '+%Y%m%d
             minute = substr(time, 4, 2)
             second = substr(time, 7, 2)
             line_date = year month day hour minute second
-            if ( line_date > from && line_date < to)
+            if ( line_date > boundary)
                 print $0
         }' ${LOG_PATH})
 

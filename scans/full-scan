@@ -14,8 +14,8 @@ print_help () {
 	    
 	${bold}DESCRIPTION${normal}
 	    Scans files looking for PHP shells using Clamscan, php-shell-detector and custom fingerprints
-	    and regular expressions. It can optionally disable infected files by moving them to a quarantine directory
-	    and send notifactions to infected users.
+	    and regular expressions. It can optionally disable infected files by moving them to a 
+	    quarantine directory and send notifactions to infected users.
 	    
 	    ${bold}-q, --quarantine=[QUARANTINE_DIR]${normal}
 	            Moves infected files into QUARANTINE_DIR, which defaults to /root/shells
@@ -122,13 +122,15 @@ function process_shell () {
         args="-c -q ${QUARANTINE_DIR}"
     fi
     while read line; do
-        filename=$(echo "${line}" | cut -d'[' -f1)
         if [[ "${line}" != *\] ]]; then
+            # No shell has been found, propagate through the pipe
             echo "${line}" >&3
-            continue
+        else
+            # Shell found
+            filename=$(echo "${line}" | cut -d'[' -f1)
+            process_shell "${filename}" false
+            echo "${line}"
         fi
-        process_shell "${filename}" false
-        echo "${line}"
     done < <(cat - | { ${dir}/php-shell-detector ${args} 2>&1 1>&4 | grep -v 'IOError' 1>&2; } 4>&1)
     exit $found
 } < <(cat -) 3> $pipe &
@@ -140,14 +142,15 @@ trap 'rm -f $pipe $pending; kill $pid; exit 1;' INT TERM HUP
 
 {
     while read line; do
-        # TODO make this more robust
-        filename=$(echo "${line}" | cut -d'[' -f1)
-        process_shell "${filename}"
+        # clamd-client only returns found shells
+        process_shell "${line}"
         echo "${line}"
     done < <(cat - | { ${dir}/clamd-client 2>&1 1>&4 | grep -v 'IOError' 1>&2; } 4>&1)
 } < $pipe
 
+
 clam_found=$found
+# Get exit code from the first process
 wait %1
 detector_found=$?
 
@@ -182,5 +185,6 @@ if [[ $detector_found -eq 126 || $clam_found -eq 126 ]]; then
     echo "TOTAL TIME: $(convertsecs $total_time)" >&2
     exit 1
 fi
+
 
 exit 0
