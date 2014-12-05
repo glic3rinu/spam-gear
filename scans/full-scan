@@ -48,7 +48,7 @@ QUARANTINE=false
 QUARANTINE_DIR='/root/shells'
 NOTIFY=false
 USERNAME_PATTERN='^/home/\([^/.]*\)/.*'
-EMAIL_PATH=$(dirname $0)/default_shell_nofification.email
+EMAIL_PATH=$(dirname $(readlink -f "$0"))/default_shell_nofification.email
 while true; do
     case $1 in
         -q|--quarantine)

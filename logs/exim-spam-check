@@ -82,7 +82,7 @@ period=$(echo "${PERIOD}" | sed "s/\([0-9]*\)/\1 /")
 message="During the last $period the following senders have made at least $MAX_CONNECTIONS SMTP connections."
 sent=false
 declare -A max_conn
-overrides="$(dirname $(readlink -f "$0"))/exim-spam-scan.overrides"
+overrides="$(dirname $(readlink -f "$0"))/../conf/exim-spam-scan.overrides"
 
 
 if [[ -e "${overrides}" ]]; then
