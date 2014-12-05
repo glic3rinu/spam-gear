@@ -5,7 +5,7 @@ Anti-spam artillery for your multi-user web and mail servers.
 This project consists of a handful of tools that, once combined, provide a good enough solution to two unsolvable problems.
 
 1. Spammers sending spam through compromised PHP web applications on shared hosting environments
-2. Spammers sending spam via stolen e-mail credentials
+2. Spammers sending spam using stolen e-mail credentials
 
 
 ## Installation
@@ -16,7 +16,8 @@ git clone https://github.com/glic3rinu/spam-gear.git
 
 
 ## Contents
-* [Log analyisis tools](logs) - Identify and stop spammers by looking at log files
+
+* [Log analysis tools](logs) - Identify and stop spammers by looking at log files
     * [postfix-spam-check](logs/postfix-spam-check)
     * [exim-spam-check](logs/exim-spam-check)
     * [roundcube-spam-check](logs/roundcube-spam-check)
@@ -34,30 +35,27 @@ git clone https://github.com/glic3rinu/spam-gear.git
 
 
 ## Crontab examples
-This is how some of our crontabs look like:
-
 ```bash
 # Web server crontab
 PATH=${PATH}:/root/spam-gear/bin
 SHELL=/bin/bash
-0    * * * *   exim-spam-check 3600 90 | emergency-mail 2000
-0,30 * * * *   roundcube-spam-check --period 1hour --max-connections 60 --disable 10,10 --nis localhost \
+FULL_SCAN="full-scan --quarantine --custom-email /root/spam-gear/scan/alert.email"
+0    * * * *   exim-spam-check -p 1hour --max-connections 90 | emergency-mail 2000
+0,30 * * * *   roundcube-spam-check -p 1hour -m 60 --disable 10,10 --nis localhost \
                 | emergency-mail 3000
-0,30 * * * *   imp-spam-check --period 1hour --max-connections 60 --disable 10,10 --nis localhost \
+0,30 * * * *   imp-spam-check -p 1hour -m 60 --disable 10,10 --nis localhost \
                 | emergency-mail 3000
-*/10 * * * *   { php-spam-legacy 10 10 && php-spam 500; } \
-                | full-scan --quarantine --custom-email /root/spam-gear/scan/alert.email
+*/10 * * * *   { php-spam-legacy 10 10 && php-spam 500; } | $FULL_SCAN
 0    0 * * *   php-shell-detector --update
-30   2 * * 6   find /home/pangea/ -type f -size -5M \
-                | full-scan --quarantine --custom-email /root/spam-gear/scan/alert.email
-30   5 * * 0-5 find /home/pangea/ -type f -mtime -2 -iname "*php" \
-                | full-scan --quarantine --custom-email /root/spam-gear/scan/alerta.email
+30   2 * * 6   find /home/pangea/ -type f -size -5M | $FULL_SCAN
+30   5 * * 0-5 find /home/pangea/ -type f -mtime -2 -iname "*php" | $FULL_SCAN
 ```
 
 ```bash
 # Mail server crontab
-
 PATH=$PATH:/root/spam-gear/bin
-0,30 * * * * postfix-spam-scan --period 1hour --max-connections 90 --disable 10,10 --nis nis.example.org --webmail 10.26.181.21,10.0.0.21 \
+0,30 * * * * postfix-spam-scan -p 1hour -m 90 -d 10,10 -n 10.0.0.21 -w 10.0.0.21 \
                 | emergency-mail 3000
 ```
+
+<!--TODO custom settinsg-->

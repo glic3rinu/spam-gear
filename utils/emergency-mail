@@ -1,6 +1,6 @@
 #!/bin/bash
 
-. $(dirname $(readlink -f "$0"))/emergency-settings
+. $(dirname $(readlink -f "$0"))/../conf/emergency-settings
 
 
 THRESHOLD=$(( ${1:-$EMERGENCY_TRESHOLD}*2 ))
