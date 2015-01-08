@@ -40,6 +40,7 @@ A Python client for clamd, [clamd-client](clamd-client), is also included. Mainl
 ## [clamd-client](clamd-client)
 
 TODO
+TODO asyncio
 
 ## [php-shell-detector](php-shell-detector)
 

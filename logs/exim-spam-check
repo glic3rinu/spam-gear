@@ -1,6 +1,5 @@
 #!/bin/bash
 
-
 print_help () {
     bold=$(tput bold)
     normal=$(tput sgr0)
@@ -40,7 +39,6 @@ print_help () {
 
 PERIOD='1hour'
 MAX_CONNECTIONS=90
-
 
 while true; do
     case $1 in
@@ -83,6 +81,7 @@ message="During the last $period the following senders have made at least $MAX_C
 sent=false
 declare -A max_conn
 overrides="$(dirname $(readlink -f "$0"))/../conf/exim-spam-scan.overrides"
+
 
 
 if [[ -e "${overrides}" ]]; then
