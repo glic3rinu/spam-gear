@@ -145,11 +145,23 @@ log=$(grep "sasl_username=" /var/log/mail.log \
 period=$(echo "${PERIOD}" | sed "s/\([0-9]*\)/\1 /")
 message="During the last ${period} the following senders have made at least ${MAX_CONNECTIONS} SMTP connections."
 found=false
+declare -A max_conn
+overrides="$(dirname $(readlink -f "$0"))/../conf/postfix-spam-scan.overrides"
+
+
+if [[ -e "${overrides}" ]]; then
+    while read line; do
+        if [[ "${line}" != "" ]]; then
+            line=( ${line} )
+            max_conn[${line[0]}]=${line[1]}
+        fi
+    done < <(cat ${overrides})
+fi
 
 
 while read line; do
     current=( ${line} )
-    if [[ ${current[0]} != "" && ${current[0]} -ge $MAX_CONNECTIONS ]]; then
+    if [[ ${current[0]} != "" && ${current[0]} -ge ${max_conn[$user]:-$MAX_CONNECTIONS} ]]; then
         userlogs=$(echo "${log}" | grep "sasl_username=${current[1]}$")
         logentry=$(echo "${userlogs}" | head -n1)
         numips=$(echo "${userlogs}" | cut -d'[' -f3 | cut -d']' -f1 | sort | uniq | wc -l)
