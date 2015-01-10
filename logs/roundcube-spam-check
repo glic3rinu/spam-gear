@@ -51,7 +51,6 @@ print_help () {
 }
 
 LOG_PATH='/var/log/roundcube/sendmail'
-LOG_PATH='/tmp/merda'
 PERIOD='1hour'
 MAX_CONNECTIONS=90
 disable=false
