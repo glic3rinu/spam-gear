@@ -51,6 +51,7 @@ print_help () {
 }
 
 LOG_PATH='/var/log/roundcube/sendmail'
+LOG_PATH='/tmp/merda'
 PERIOD='1hour'
 MAX_CONNECTIONS=90
 disable=false
@@ -113,7 +114,7 @@ log=$(awk -v boundary="$(date '+%Y%m%d%H%M%S' -d -${PERIOD})" \
             months["Oct"] = "10";
             months["Nov"] = "11";
             months["Dec"] = "12";
-        } {
+        } /^\[/{
             # date = [01-Dec-2014 12:40:37
             date = substr($1, 2)
             year = substr(date, 8, 4)
@@ -128,11 +129,9 @@ log=$(awk -v boundary="$(date '+%Y%m%d%H%M%S' -d -${PERIOD})" \
                 print $0
         }' ${LOG_PATH})
 
-
 period=$(echo "${PERIOD}" | sed "s/\([0-9]*\)/\1 /")
 message="During the last ${period} the following senders have made at least ${MAX_CONNECTIONS} SMTP connections."
 found=false
-
 
 while read line; do
     current=( ${line} )
