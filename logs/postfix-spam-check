@@ -195,4 +195,4 @@ while read line; do
         fi
         echo "${report}"
     fi
-done < <(echo "$log" | cut -d'=' -f4 | sort -n | uniq -c)
+done < <(echo "$log" | cut -d'=' -f4 | grep -v '^$' | sort -n | uniq -c)
