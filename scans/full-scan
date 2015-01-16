@@ -105,12 +105,12 @@ initial_time=$(date +%s)
 function process_shell () {
     local filename=$1
     local delete=${2:-true}
-    local email=$(echo "${filename}" | sed "s#${USERNAME_PATTERN}#\1@$(hostname -d)#")
     found=126
     if [[ $QUARANTINE = true && $delete = true ]]; then
         mv "${filename}" "${QUARANTINE_DIR}"
     fi
     if [[ $NOTIFY = true ]]; then
+        local email=$(echo "${filename}" | sed "s#${USERNAME_PATTERN}#\1@$(hostname -d)#")
         echo ${email} ${filename} >> $pending
     fi
 }
@@ -127,11 +127,12 @@ function process_shell () {
             echo "${line}" >&3
         else
             # Shell found
-            filename=$(echo "${line}" | cut -d'[' -f1)
+            filename=$(echo "${line}" | sed -r "s/ \[(CUSTOM|DETECTOR)\].*//")
             process_shell "${filename}" false
             echo "${line}"
         fi
     done < <(cat - | { ${dir}/php-shell-detector ${args} 2>&1 1>&4 | grep -v 'IOError' 1>&2; } 4>&1)
+    exec 3>&-
     exit $found
 } < <(cat - | grep -v '/$') 3> $pipe &
 
@@ -143,7 +144,8 @@ trap 'rm -f $pipe $pending; kill $pid; exit 1;' INT TERM HUP
 {
     while read line; do
         # clamd-client only returns found shells
-        process_shell "${line}"
+        filename=$(echo "${line}" | sed "s/ \[CLAMAV\].*//")
+        process_shell "${filename}"
         echo "${line}"
     done < <(cat - | { ${dir}/clamd-client 2>&1 1>&4 | grep -v 'IOError' 1>&2; } 4>&1)
 } < $pipe
