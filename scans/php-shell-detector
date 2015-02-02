@@ -164,11 +164,11 @@ def analyse(args):
             found = False
             last = ''
             content = str(f.read())
-            found, label = check_custom(content, filename, args)
+            found, label = check_backdoors(content, filename, args)
+            if not found:
+                found, label = check_custom(content, filename, args)
             if not found:
                 found, label = check_fingerprints(content, filename, args)
-            if not found:
-                found, label = check_backdoors(content, filename, args)
             if label:
                 print filename, label
             else:
