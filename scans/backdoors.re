@@ -2,3 +2,4 @@
 <\?php\s*if\(md5\(\$_COOKIE\['_wp_debugger'\]\)==\"[0-z]*\"\){\s*eval\(base64_decode\(\$_POST\['file'\]\)\);\s*exit;\s*}\s*\?>
 <!--([0-9a-f]{6})-->.*<!--/\1-->
 <\?php\s\$gphkybdzlb\s=\s.*uqnqtmkaxf-1;\s\?>
+\$OOO000000=urldecode\('%66%67%36%73.*'\)\);
