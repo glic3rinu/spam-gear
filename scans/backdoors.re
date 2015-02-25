@@ -3,3 +3,4 @@
 <!--([0-9a-f]{6})-->.*<!--/\1-->
 <\?php\s\$gphkybdzlb\s=\s.*uqnqtmkaxf-1;\s\?>
 \$OOO000000=urldecode\('%66%67%36%73.*'\)\);
+error_reporting\(0\);eval\(base64_decode\('JGx.*=='\)\);
