@@ -132,9 +132,8 @@ function process_shell () {
             echo "${line}"
         fi
     done < <(cat - | { ${dir}/php-shell-detector ${args} 2>&1 1>&4 | grep -v 'IOError' 1>&2; } 4>&1)
-    exec 3>&-
     exit $found
-} < <(cat - | grep -v '/$') 3> $pipe &
+} < <(grep -v '/$' -) 3> $pipe &
 
 
 pid=$!
