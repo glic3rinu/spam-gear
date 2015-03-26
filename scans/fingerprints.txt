@@ -13,3 +13,4 @@ base64_decode('1RprcxM58jtV/AehyyZ2rcdjOwkb7NjAhrBLFQGWhLvbAio1npFtLfNC0iT2svz36
 base64_decode(str_rot13("7C15z5gVyvtB/939CC0q1Qz+
 wvfmo"]="link";${${"GLOBALS"}["uuoeldlhn"]}=fopen("php.ini","w")
 preg_replace("/.*/e","\x65\x76\x61\x6C\x28\x67\x7A\x69\x6E\x66\x6C
+${"\x47\x4c\x4f\x42\x41LS"}["t\x66w\x72lf\x68zm\x73"]="\x72"

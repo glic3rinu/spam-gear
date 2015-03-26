@@ -1,7 +1,7 @@
 #!/bin/bash
 
 filename=$1
-echo $filename | /root/spam-gear/php-shell-scan &> /dev/null
+echo $filename | "$(dirname $(readlink -f "$0"))/../bin/full-scan" &> /dev/null
 found=$?
 
 if [[ $found -eq 0 ]]; then
