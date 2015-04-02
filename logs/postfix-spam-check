@@ -157,7 +157,6 @@ if [[ -e "${overrides}" ]]; then
     done < <(cat ${overrides})
 fi
 
-
 while read line; do
     current=( ${line} )
     user=${current[1]}
@@ -175,7 +174,7 @@ while read line; do
             found=true
         fi
         report="${current[0]} (${nets} nets/${unknowns} unknowns/${numips} IPs/${webmail} webmail) -- ${logentry}"
-        if [[ $disable = true && $nets -gt $MAX_NETS && $unknown -gt $MAX_UNKNOWNS ]]; then
+        if [[ $disable = true && $nets -gt $MAX_NETS && $unknowns -gt $MAX_UNKNOWNS ]]; then
             report="${report} [DISABLED]"
             if [[ $nis = true ]]; then
                 echo "NIS"
