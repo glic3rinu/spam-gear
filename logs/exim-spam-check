@@ -123,4 +123,4 @@ while read line; do
         logentry=$(echo "$log" | grep "\(${user}\)" | head -n1)
         echo "${conn} -- ${logentry}"
     fi;
-done < <(echo "$log" | grep -v 'U=' | awk -F'(' {'print $2'} | cut -d')' -f1 | sort | uniq -c)
+done < <(echo "$log" | grep 'P=' | grep 'H=' | awk -F'(' {'print $2'} | cut -d')' -f1 | sort | uniq -c)
