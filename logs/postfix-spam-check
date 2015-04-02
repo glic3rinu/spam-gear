@@ -186,7 +186,7 @@ while read line; do
                 passwd "${user}" -l
             fi
             (
-                echo "Subject: SPAMMER DETECTED AT $(hostname -f) [USER DISABLED]"
+                echo "Subject: SPAMMER DETECTED AT $(hostname -f) [USER ${user} DISABLED]"
                 echo "To: root@$(hostname -d)"
                 echo ""
                 echo "${report}"
