@@ -189,8 +189,8 @@ while read line; do
                 echo "Subject: SPAMMER DETECTED AT $(hostname -f) [USER DISABLED]"
                 echo "To: root@$(hostname -d)"
                 echo ""
-                echo "${msg}"
-            ) | sendmail root@$(hostname -d) -
+                echo "${report}"
+            ) | sendmail root@$(hostname -d)
         fi
         echo "${report}"
     fi
