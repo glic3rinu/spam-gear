@@ -29,7 +29,8 @@ Nagios check for most common DNSBL lists.
 
 ## [runav.sh](runav.sh)
 
-Add a similar rule to `modsecurity.conf` config file:
+Modsecutiry2 compat wrapper for full-scan. Just add a similar rule to `modsecurity.conf` config file:
+
 ```
 SecRule FILES_TMPNAMES "@inspectFile /usr/local/share/spam-gear/utils/runav.sh" \
     "id:159,phase:2,t:none,log,deny,msg:'Malicious Code Detected, access denied'"
