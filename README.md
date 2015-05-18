@@ -54,7 +54,7 @@ FULL_SCAN="full-scan --quarantine --custom-email /root/spam-gear/conf/alert.emai
 
 ```bash
 # Mail server crontab
-PATH=$PATH:/root/spam-gear/bin
+PATH=$PATH:/urs/local/share/spam-gear/bin
 0,30 * * * * postfix-spam-scan -p 1hour -m 90 -d 10,10 -n 10.0.0.21 -w 10.0.0.21 \
                 | emergency-mail 3000
 ```
