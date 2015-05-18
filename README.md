@@ -40,7 +40,7 @@ git clone https://github.com/glic3rinu/spam-gear.git
 # Web server crontab
 PATH=${PATH}:/usr/local/share/spam-gear/bin
 SHELL=/bin/bash
-FULL_SCAN="full-scan --quarantine --custom-email /root/spam-gear/conf/alert.email"
+FULL_SCAN="full-scan --quarantine --custom-email /usr/share/local/spam-gear/conf/alert.email"
 0    * * * *   exim-spam-check -p 1hour --max-connections 90 | emergency-mail 2000
 0,30 * * * *   roundcube-spam-check -p 1hour -m 60 --disable 10,10 --nis localhost \
                 | emergency-mail 3000
