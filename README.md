@@ -10,7 +10,7 @@ This project consists of a handful of tools that, once combined, provide a good 
 
 ## Installation
 ```bash
-cd /root
+cd /usr/local/share/
 git clone https://github.com/glic3rinu/spam-gear.git
 ```
 
@@ -38,7 +38,7 @@ git clone https://github.com/glic3rinu/spam-gear.git
 
 ```bash
 # Web server crontab
-PATH=${PATH}:/root/spam-gear/bin
+PATH=${PATH}:/usr/local/share/spam-gear/bin
 SHELL=/bin/bash
 FULL_SCAN="full-scan --quarantine --custom-email /root/spam-gear/conf/alert.email"
 0    * * * *   exim-spam-check -p 1hour --max-connections 90 | emergency-mail 2000
