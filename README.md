@@ -23,7 +23,7 @@ git clone https://github.com/glic3rinu/spam-gear.git
     * [roundcube-spam-check](logs/roundcube-spam-check)
     * [imp-spam-check](logs/imp-spam-check)
     * [php-spam-check](logs/php-legacy-check)
-    * [php-legacy-spam-check](logs/php-spam-legacy-check)
+    * [php-legacy-spam-check](logs/php-legacy-spam-check)
 * [Filesystem scan tools](scans) - Detect and remove malicious code from your system
     * [full-scan](scans/full-scan) - Wrapper for clamd-client and php-shell-detector
     * [clamd-client](scans/clamd-client) - Python client for [Clamd](http://www.clamav.net)
