@@ -103,15 +103,17 @@ initial_time=$(date +%s)
 
 
 function process_shell () {
-    local filename=$1
+    local filepath=$1
     local delete=${2:-true}
     found=126
     if [[ $QUARANTINE = true && $delete = true ]]; then
-        mv "${filename}" "${QUARANTINE_DIR}"
+        filedir=$(dirname "${filepath"})
+        mkdir -p "${QUARANTINE_DIR}/${filedir}"
+        mv "${filepath}" "${QUARANTINE_DIR}/${filedir}"
     fi
     if [[ $NOTIFY = true ]]; then
-        local email=$(echo "${filename}" | sed "s#${USERNAME_PATTERN}#\1@$(hostname -d)#")
-        echo ${email} ${filename} >> $pending
+        local email=$(echo "${filepath}" | sed "s#${USERNAME_PATTERN}#\1@$(hostname -d)#")
+        echo ${email} ${filepath} >> $pending
     fi
 }
 
@@ -127,8 +129,8 @@ function process_shell () {
             echo "${line}" >&3
         else
             # Shell found
-            filename=$(echo "${line}" | sed -r "s/ \[(CUSTOM|DETECTOR)\].*//")
-            process_shell "${filename}" false
+            filepath=$(echo "${line}" | sed -r "s/ \[(CUSTOM|DETECTOR)\].*//")
+            process_shell "${filepath}" false
             echo "${line}"
         fi
     done < <(cat - | { ${dir}/php-shell-detector ${args} 2>&1 1>&4 | grep -v 'IOError' 1>&2; } 4>&1)
@@ -143,8 +145,8 @@ trap 'rm -f $pipe $pending; kill $pid; exit 1;' INT TERM HUP
 {
     while read line; do
         # clamd-client only returns found shells
-        filename=$(echo "${line}" | sed "s/ \[CLAMAV\].*//")
-        process_shell "${filename}"
+        filepath=$(echo "${line}" | sed "s/ \[CLAMAV\].*//")
+        process_shell "${filepath}"
         echo "${line}"
     done < <(cat - | { ${dir}/clamd-client 2>&1 1>&4 | grep -v 'IOError' 1>&2; } 4>&1)
 } < $pipe

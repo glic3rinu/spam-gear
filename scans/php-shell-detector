@@ -6,6 +6,7 @@
 
 
 import argparse
+import errno
 import os
 import re
 import shutil
@@ -44,10 +45,16 @@ def unserialize(s):
     return methods[s[0].lower()](s[2:])
 
 
-def apply_quarantine(filename, args):
+def apply_quarantine(filepath, args):
     if args.quarantine is not None:
-        dst = os.path.join(args.quarantine, os.path.basename(filename))
-        shutil.move(filename, dst)
+        dstpath = os.path.join(args.quarantine, os.path.dirname(filepath))
+        try:
+            os.makedirs(dstpath)
+        except OSError as exc:
+            if exc.errno != errno.EEXIST or not os.path.isdir(path):
+                raise
+        dst = os.path.join(dstpath, os.path.basename(filepath))
+        shutil.move(filepath, dst)
 
 
 def updatedb():
@@ -83,7 +90,7 @@ def get_fingerprints():
     return fingerprints
 
 
-def check_fingerprints(content, filename, args, fingerprints=get_fingerprints(),
+def check_fingerprints(content, filepath, args, fingerprints=get_fingerprints(),
                        regex_shell=re.compile('(.*)\[(.*?)\]\[(.*?)\]\[(.*?)\]')):
     found = False
     for fingerprint, shellname in fingerprints:
@@ -95,7 +102,7 @@ def check_fingerprints(content, filename, args, fingerprints=get_fingerprints(),
                 label += ' [NON-CLEANED]'
             else:
                 found = True
-                apply_quarantine(filename, args)
+                apply_quarantine(filepath, args)
             return found, label
     return found, ''
 
@@ -109,12 +116,12 @@ def get_custom():
     return custom
 
 
-def check_custom(content, filename, args, custom=get_custom()):
+def check_custom(content, filepath, args, custom=get_custom()):
     found = False
     for num, fingerprint in custom:
         if fingerprint in content:
             found = True
-            apply_quarantine(filename, args)
+            apply_quarantine(filepath, args)
             label = '[CUSTOM] [PHP.Finger.%i]' % num
             return found, label
     return found, ''
@@ -129,7 +136,7 @@ def get_backdoors():
     return backdoors
 
 
-def check_backdoors(content, filename, args, backdoors=get_backdoors(),
+def check_backdoors(content, filepath, args, backdoors=get_backdoors(),
                     backdoor_regex=re.compile(r'eval\s*\(\s*base64_decode.*_POST')):
     found = False
     label = ''
@@ -138,7 +145,7 @@ def check_backdoors(content, filename, args, backdoors=get_backdoors(),
             found = True
             if args.clean:
                 content = backdoor.sub('', content)
-                with open(filename, 'wt') as f:
+                with open(filepath, 'wt') as f:
                     f.write(content)
                 label = '[CUSTOM] [PHP.Backdoor.%i] [CLEANED]' % num
             else:
@@ -150,40 +157,41 @@ def check_backdoors(content, filename, args, backdoors=get_backdoors(),
 
 
 def analyse(args):
-    for filename in sys.stdin:
-        filename = filename.strip()
-        if not filename.endswith(('.php', '.html', '.htm')):
-            print filename
+    for filepath in sys.stdin:
+        filepath = filepath.strip()
+        if not filepath.endswith(('.php', '.html', '.htm')):
+            print filepath
             continue
         try:
-            f = open(filename, 'rt')
+            f = open(filepath, 'rt')
         except IOError:
-            sys.stderr.write('%s: IOError\n' % filename)
+            sys.stderr.write('%s: IOError\n' % filepath)
             continue
         with f:
             found = False
             last = ''
             content = str(f.read())
-            found, label = check_backdoors(content, filename, args)
+            found, label = check_backdoors(content, filepath, args)
             if not found:
-                found, label = check_custom(content, filename, args)
+                found, label = check_custom(content, filepath, args)
             if not found:
-                found, label = check_fingerprints(content, filename, args)
+                found, label = check_fingerprints(content, filepath, args)
             if label:
-                print filename, label
+                print filepath, label
             else:
-                print filename
+                print filepath
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Process some integers.')
-    parser.add_argument('-q', '--quarantine', metavar='PATH', dest='quarantine', type=str, nargs='?',
-                       const='/root/shells/',
-                       help='Enables quarantine of malicious files. Optional quarantine path.')
-    parser.add_argument('-c', '--clean', dest='clean', action='store_true',
-                       default=False, help='Clean infected files (backdoors).')
-    parser.add_argument('-u', '--update', dest='update', action='store_true',
-                       default=False, help='Update database')
+    parser.add_argument('-q', '--quarantine',
+        metavar='PATH', dest='quarantine', type=str, nargs='?', const='/root/shells/',
+        help='Enables quarantine of malicious files. Optional quarantine path.')
+    parser.add_argument('-c', '--clean',
+        dest='clean', action='store_true', default=False,
+        help='Clean infected files (backdoors).')
+    parser.add_argument('-u', '--update',
+        dest='update', action='store_true', default=False, help='Update database')
     args = parser.parse_args()
     
     dirname = os.path.dirname(os.path.realpath(__file__))
