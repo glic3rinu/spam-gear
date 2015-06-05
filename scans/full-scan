@@ -107,7 +107,7 @@ function process_shell () {
     local delete=${2:-true}
     found=126
     if [[ $QUARANTINE = true && $delete = true ]]; then
-        filedir=$(dirname "${filepath"})
+        filedir=$(dirname "${filepath}")
         mkdir -p "${QUARANTINE_DIR}/${filedir}"
         mv "${filepath}" "${QUARANTINE_DIR}/${filedir}"
     fi
