@@ -47,11 +47,11 @@ def unserialize(s):
 
 def apply_quarantine(filepath, args):
     if args.quarantine is not None:
-        dstpath = os.path.join(args.quarantine, os.path.dirname(filepath))
+        dstpath = os.path.join(args.quarantine, os.path.dirname(filepath).lstrip('/'))
         try:
             os.makedirs(dstpath)
         except OSError as exc:
-            if exc.errno != errno.EEXIST or not os.path.isdir(path):
+            if exc.errno != errno.EEXIST or not os.path.isdir(dstpath):
                 raise
         dst = os.path.join(dstpath, os.path.basename(filepath))
         shutil.move(filepath, dst)

