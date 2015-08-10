@@ -61,4 +61,4 @@ PATH=$PATH:/urs/local/share/spam-gear/bin
 
 * Notice that crontab doesn't support line breaks, here are used just for readability.
 
-<!--TODO custom settinsg-->
+<!--TODO full-scan construct full paths from clamd-client -->

@@ -7,6 +7,7 @@ __version__ = "0.3.4"
 import socket
 import struct
 import base64
+import os
 import sys
 import time
 import thread
@@ -346,9 +347,10 @@ if __name__ == "__main__":
         worker = Thread(target=analyze, args=(queue,))
         worker.setDaemon(True)
         worker.start()
-    
+    pwd = os.getcwd()
     for filename in sys.stdin:
         filename = filename.strip()
+        filename = os.path.join(pwd, filename)
         queue.put(filename)
     
     for i in range(num_threads):

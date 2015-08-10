@@ -12,6 +12,7 @@ while read line; do
         echo "${current[1]}"
     fi;
 done < <(
+    # Jul  2 09:31:10 web root: sendmail-php url=www.example.org/sendmail.php, client=8.8.8.8, filename=/home/user/webapps/public/sendmail.php, uid=1473, user=user, args=
     grep "sendmail-php" /var/log/mail.log \
     | awk -v boundary="$(date '+%Y%m%d%H%M%S' -d -${MINUTES}minute)" \
         'BEGIN {

