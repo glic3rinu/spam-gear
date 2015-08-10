@@ -63,7 +63,25 @@ while true; do
 done
 
 
-log=$(grep ": sendmail2relay " /var/log/mail.log \
+period=$(echo "${PERIOD}" | sed "s/\([0-9]*\)/\1 /")
+message="During the last $period the following senders have made at least $MAX_CONNECTIONS SMTP connections."
+sent=false
+declare -A max_conn
+overrides="$(dirname $(readlink -f "$0"))/../conf/sendmail2relay-spam-check.overrides"
+
+
+
+if [[ -e "${overrides}" ]]; then
+    while read line; do
+        if [[ "${line}" != "" ]]; then
+            line=( ${line} )
+            max_conn[${line[0]}]=${line[1]}
+        fi
+    done < <(cat ${overrides})
+fi
+
+
+grep ": sendmail2relay " /var/log/mail.log \
     | awk -v boundary="$(date '+%Y%m%d%H%M%S' -d -${PERIOD})" \
         'BEGIN {
             months["Jan"] = "01";
@@ -92,38 +110,17 @@ log=$(grep ": sendmail2relay " /var/log/mail.log \
             line_date = year month day hour minute second
             if ( line_date > boundary)
                 print $0
-        }'
-)
-
-
-period=$(echo "${PERIOD}" | sed "s/\([0-9]*\)/\1 /")
-message="During the last $period the following senders have made at least $MAX_CONNECTIONS SMTP connections."
-sent=false
-declare -A max_conn
-overrides="$(dirname $(readlink -f "$0"))/../conf/sendmail2relay-spam-check.overrides"
-
-
-
-if [[ -e "${overrides}" ]]; then
-    while read line; do
-        if [[ "${line}" != "" ]]; then
-            line=( ${line} )
-            max_conn[${line[0]}]=${line[1]}
-        fi
-    done < <(cat ${overrides})
-fi
-
-
-while read line; do
-    line=( ${line} )
-    conn=${line[0]}
-    user=${line[1]}
-    if [[ ${conn} -gt ${max_conn[$user]:-$MAX_CONNECTIONS} ]]; then
-        if [[ $sent = false ]]; then
-            echo -e "${message}\n"
-            sent=true
-        fi
-        logentry=$(echo "$log" | grep "user=\"${user}\""|head -n1)
-        echo "${conn} -- ${logentry}"
-    fi;
-done < <(echo "$log" | sed -E 's/.*user="([^"]+)".*/\1/' | sort | uniq -c)
+        }' \
+    | sed -E 's/.*user="([^"]+)".*/\1/' | sort | uniq -c | while read line; do
+        line=( ${line} )
+        conn=${line[0]}
+        user=${line[1]}
+        if [[ ${conn} -gt ${max_conn[$user]:-$MAX_CONNECTIONS} ]]; then
+            if [[ $sent = false ]]; then
+                echo -e "${message}\n"
+                sent=true
+            fi
+            logentry=$(echo "$log" | grep "user=\"${user}\""|head -n1)
+            echo "${conn} -- ${logentry}"
+        fi;
+    done
