@@ -1,0 +1,51 @@
+#!/bin/bash
+
+# PHP < 5.3 (No built-in mail logging support)
+
+
+MINUTES=$(echo "${1:-10}*1.2" | bc | sed "s/\..*//")
+MAX_MAILS=${2:-10}
+
+while read line; do
+    current=($(echo "$line"))
+    if [[ ${current[0]} != "" && ${current[0]} -ge $MAX_MAILS ]]; then
+        if [[ "${current[1]}" =~ /$ ]]; then
+            find "${current[1]}" -maxdepth 1 -type f -iname "*.php"
+        else
+            echo "${current[1]}"
+        fi
+    fi;
+done < <(
+    # Jul  2 10:23:39 web root: sendmail2relay user="ivan" path="/home/ivan/webapps/php/sub/tmail.php"
+    grep "sendmail2relay" /var/log/mail.log \
+    | awk -v boundary="$(date '+%Y%m%d%H%M%S' -d -${MINUTES}minute)" \
+        'BEGIN {
+            months["Jan"] = "01";
+            months["Feb"] = "02";
+            months["Mar"] = "03";
+            months["Apr"] = "04";
+            months["May"] = "05";
+            months["Jun"] = "06";
+            months["Jul"] = "07";
+            months["Aug"] = "08";
+            months["Sep"] = "09";
+            months["Oct"] = "10";
+            months["Nov"] = "11";
+            months["Dec"] = "12";
+        } {
+            # Dec  4 19:48:08
+            month = months[$1];
+            year = substr(boundary, 1, 4)
+            if ( month == 12 && substr(boundary, 5, 2) == 01 ) {
+                year = year - 1
+            }
+            day = sprintf("%02d", $2)
+            hour = substr($3, 1, 2)
+            minute = substr($3, 4, 2)
+            second = substr($3, 7, 2)
+            line_date = year month day hour minute second
+            if ( line_date > boundary )
+                print $8
+        }'\
+    | sed -s 's/.*="\(.*\)"/\1/' | grep -v '^$' | sort | uniq -c
+)

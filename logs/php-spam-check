@@ -10,4 +10,4 @@ while read line; do
     if [[ ${current[0]} != "" && ${current[0]} -ge $MAX_DAILY_MAILS ]]; then
         echo "${current[1]}"
     fi;
-done < <(grep ^mail /var/log/phpmail.log | cut -d':' -f1|cut -d'[' -f2 | sort | uniq -c)
+done < <(grep ^mail /var/log/phpmail.log | cut -d':' -f1|cut -d'[' -f2 | sed 's/(88)\s*$//' | sort | uniq -c)

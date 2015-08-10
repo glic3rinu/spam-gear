@@ -123,7 +123,7 @@ while read line; do
             echo -e "${message}\n"
             sent=true
         fi
-        logentry=$(echo "$log" | grep "U=${user} "|head -n1)
+        logentry=$(echo "$log" | grep "user=\"${user}\""|head -n1)
         echo "${conn} -- ${logentry}"
     fi;
 done < <(echo "$log" | sed -E 's/.*user="([^"]+)".*/\1/' | sort | uniq -c)
