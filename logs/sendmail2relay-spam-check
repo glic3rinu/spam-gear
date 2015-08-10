@@ -1,0 +1,129 @@
+#!/bin/bash
+
+print_help () {
+    bold=$(tput bold)
+    normal=$(tput sgr0)
+    cat <<- EOF
+	
+	${bold}NAME${normal}
+	    ${bold}sendmail2relay-spam-check${normal} - sendmail2relay logs spammers reporter
+	    
+	${bold}SYNOPSIS${normal}
+	    ${bold}sendmail2relay-spam-check${normal} [ OPTION ]
+	    
+	${bold}DESCRIPTION${normal}
+	    Scans Postfix logs /var/log/mail.log looking for SASL authenticated users that make more than MAX_CONNECTIONS per time PERIOD.
+	    Covering the typical attacks on a mail server setup
+	    
+	    ${bold}-p, --period=PERIOD${normal}
+	            A DATE STRING compatible period "1hour", "1minute", etc see man date for more.
+	            Defaults to "1hour"
+	    
+	    ${bold}-m, --max-connections=MAX_CONNECTIONS${normal}
+	            Threshold value for number of connections beyond a report is made.
+	            Defaults to 90.
+	    
+	    ${bold}-h, --help${normal}
+	            Prints this help text
+	    
+	${bold}EXAMPLES${normal}
+	    sendmail2relay-spam-check
+	    
+	    sendmail2relay-spam-check -p 30minutes -m 60
+	    
+	    sendmail2relay-spam-check -d 10,10
+	    
+	EOF
+}
+
+
+PERIOD='1hour'
+MAX_CONNECTIONS=90
+
+while true; do
+    case $1 in
+        -p|--period)
+            PERIOD=${2}
+            if [[ ! $(date -d "-${PERIOD}" 2> /dev/null) ]]; then
+                echo "${PERIOD}: Unsuported DATE STRING" >&2
+                exit 2
+            fi
+            shift; shift ;;
+        -m|--max-connections)
+            MAX_CONNECTIONS=${2}
+            if ! [[ $MAX_CONNECTIONS =~ ^[0-9]+$ ]]; then
+                echo "${MAX_CONNECTIONS}: Is not a number" >&2
+                exit 2
+            fi
+            shift; shift ;;
+        -h|--help) print_help; exit 0 ;;
+        -*) echo "$0: Unrecognized option $1" >&2; exit 2 ;;
+        *) break ;;
+    esac
+done
+
+
+log=$(grep ": sendmail2relay " /var/log/mail.log \
+    | awk -v boundary="$(date '+%Y%m%d%H%M%S' -d -${PERIOD})" \
+        'BEGIN {
+            months["Jan"] = "01";
+            months["Feb"] = "02";
+            months["Mar"] = "03";
+            months["Apr"] = "04";
+            months["May"] = "05";
+            months["Jun"] = "06";
+            months["Jul"] = "07";
+            months["Aug"] = "08";
+            months["Sep"] = "09";
+            months["Oct"] = "10";
+            months["Nov"] = "11";
+            months["Dec"] = "12";
+        } {
+            # Dec  4 19:48:08
+            month = months[$1];
+            year = substr(boundary, 1, 4)
+            if ( month == 12 && substr(boundary, 5, 2) == 01 ) {
+                year = year - 1
+            }
+            day = sprintf("%02d", $2)
+            hour = substr($3, 1, 2)
+            minute = substr($3, 4, 2)
+            second = substr($3, 7, 2)
+            line_date = year month day hour minute second
+            if ( line_date > boundary)
+                print $0
+        }'
+)
+
+
+period=$(echo "${PERIOD}" | sed "s/\([0-9]*\)/\1 /")
+message="During the last $period the following senders have made at least $MAX_CONNECTIONS SMTP connections."
+sent=false
+declare -A max_conn
+overrides="$(dirname $(readlink -f "$0"))/../conf/sendmail2relay-spam-check.overrides"
+
+
+
+if [[ -e "${overrides}" ]]; then
+    while read line; do
+        if [[ "${line}" != "" ]]; then
+            line=( ${line} )
+            max_conn[${line[0]}]=${line[1]}
+        fi
+    done < <(cat ${overrides})
+fi
+
+
+while read line; do
+    line=( ${line} )
+    conn=${line[0]}
+    user=${line[1]}
+    if [[ ${conn} -gt ${max_conn[$user]:-$MAX_CONNECTIONS} ]]; then
+        if [[ $sent = false ]]; then
+            echo -e "${message}\n"
+            sent=true
+        fi
+        logentry=$(echo "$log" | grep "U=${user} "|head -n1)
+        echo "${conn} -- ${logentry}"
+    fi;
+done < <(echo "$log" | sed -E 's/.*user="([^"]+)".*/\1/' | sort | uniq -c)
