@@ -145,9 +145,14 @@ def check_backdoors(content, filepath, args, backdoors=get_backdoors(),
             found = True
             if args.clean:
                 content = backdoor.sub('', content)
-                with open(filepath, 'wt') as f:
-                    f.write(content)
-                label = '[CUSTOM] [PHP.Backdoor.%i] [CLEANED]' % num
+                content = content.strip()
+                if content and content != '?>':
+                    with open(filepath, 'wt') as f:
+                        f.write(content)
+                    label = '[CUSTOM] [PHP.Backdoor.%i] [CLEANED]' % num
+                elif 'KoolControls' not in filepath:
+                    apply_quarantine(filepath, args)
+                    label = '[CUSTOM] [PHP.Backdoor.%i] [QUARANTINED]' % num
             else:
                 label = '[CUSTOM] [PHP.Backdoor.%i]' % num
             return found, label

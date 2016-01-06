@@ -5,3 +5,6 @@
 \$OOO000000=urldecode\('%66%67%36%73.*'\)\);
 error_reporting\(0\);eval\(base64_decode\('JGx.*=='\)\);
 <\?php if\(!isset\(\$GLOBALS\[\"\\x61\\156\\x75\\156\\x61"\]\)\).*\?>
+<\?php.*(\\[x0-9a-f]{2,}){3,}.*
+<\?php eval\(gzinflate\(base64_decode\(.*
+.*( '[0-z]'=>'[0-z]',){20}.*

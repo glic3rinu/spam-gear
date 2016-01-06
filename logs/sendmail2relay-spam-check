@@ -113,10 +113,11 @@ log=$(grep ": sendmail2relay " /var/log/mail.log \
 )
 
 
-while read line; do
-    line=( ${line} )
+while read line2; do
+    line=( ${line2} )
     conn=${line[0]}
     user=${line[1]}
+    echo "\"$user\" ${max_conn[$user]:-$MAX_CONNECTIONS} $line2" >> /tmp/upamotup
     if [[ ${conn} -gt ${max_conn[$user]:-$MAX_CONNECTIONS} ]]; then
         if [[ $sent = false ]]; then
             echo -e "${message}\n"
@@ -125,4 +126,4 @@ while read line; do
         logentry=$(echo "$log" | grep "user=\"${user}\""|head -n1)
         echo "${conn} -- ${logentry}"
     fi;
-done < <(echo "$log" | sed -E 's/.*user="([^"]+)".*/\1/' | sort | uniq -c)
+done < <(echo "$log" | sed -E 's/.*user="([^"]+)".*/\1/' | grep -v '^$' | sort | uniq -c)
