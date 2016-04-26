@@ -32,6 +32,7 @@ git clone https://github.com/glic3rinu/spam-gear.git
     * [emergency-mail](utils/emergency-mail) - SMTP client for sending emails outside
     * [check_dnsbl.sh](utils/check_dnsbl.sh) - Nagios black list checker
     * [runav.sh](utils/runav.sh) - full-scan wrapper for modsecurity
+* [Tips](TIPS.md) - Common tips and best practices for reducing spam incidents
 
 
 ## Crontab examples
