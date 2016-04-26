@@ -41,13 +41,16 @@ git clone https://github.com/glic3rinu/spam-gear.git
 
 1. Prevent CGI execution on upload directories
     ```
-    <DirectoryMatch ".*upload.*">
+    <DirectoryMatch ".*upload.*/.*">
         Options -ExecCGI
-        # PHP-FPM
         <Files *.php>
             deny from all
         </Files>
     </DirectoryMatch>
+    # PHP-FPM
+    <LocationMatch ".*upload.*/.*.php">
+            deny from all
+    </LocationMatch>
     ```
 
 2. Disable security sensitive PHP functions
