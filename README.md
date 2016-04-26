@@ -136,6 +136,7 @@ git clone https://github.com/glic3rinu/spam-gear.git
 12. Check outgoing mail for spam
 
 13. Develop custom MailScanner rules for phishing attacks
+
 14. Use [Postfix check_recipient_access](http://www.postfix.org/postconf.5.html#check_recipient_access) to block known phishing return addresses
     ```
     # recipient_access
