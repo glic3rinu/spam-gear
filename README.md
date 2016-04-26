@@ -124,7 +124,7 @@ git clone https://github.com/glic3rinu/spam-gear.git
 
 7. Monitor and analyse your spam patterns with [Baruwa](https://www.baruwa.org/), and create MailScanner rules accordingly.
 
-11. Use Postfix [header checks](http://www.postfix.org/header_checks.5.html) to rely bad-reputation users to secondary mail servers
+11. Use Postfix [header checks](http://www.postfix.org/header_checks.5.html) to relay bad-reputation users to secondary mail servers
     ```
     /^Received:.*\(Authenticated sender: (baduser1|baduser2|baduser3)\)\s*by mail.pangea.org\b/
         FILTER relay:bad-mail.pangea.org
