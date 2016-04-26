@@ -62,7 +62,7 @@ git clone https://github.com/glic3rinu/spam-gear.git
 
 4. Don't use your primary mail server for sending webusers mail
 
-5. Use [fail2ban](http://www.fail2ban.org), and ban failed attemps at login.php endpoints
+5. Use [fail2ban](http://www.fail2ban.org), and ban failed attemps at `login.php` endpoints
     ```
     # /etc/fail2ban/filter.d/php-login.conf
     [Definition]
@@ -79,7 +79,7 @@ git clone https://github.com/glic3rinu/spam-gear.git
     maxretry = 8
     ```
 
-6. Use Apache [modsecurity](https://www.modsecurity.org)
+6. Use Apache [ModSecurity](https://www.modsecurity.org)
 
 7. Inspect uploaded files with ModSecurity and spam-gear
     ```
