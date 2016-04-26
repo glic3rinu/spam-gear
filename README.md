@@ -50,13 +50,6 @@ git clone https://github.com/glic3rinu/spam-gear.git
     </DirectoryMatch>
     ```
 
-7. Inspect uploaded files with ModSecurity and spam-gear
-    ```
-    # modsecurity.conf
-    SecRule FILES_TMPNAMES "@inspectFile /usr/local/share/spam-gear/utils/runav.sh" \
-        "id:159,phase:2,t:none,log,deny,msg:'Malicious Code Detected, access denied'"
-    ```
-
 2. Disable security sensitive PHP functions
     ```
     disable_functions = exec,passthru,shell_exec,system,proc_open,popen,curl_multi_exec,show_source,pcntl_exec,proc_close,proc_get_status,proc_nice,proc_terminate,ini_alter,virtual,openlog,dl,fsockopen,pfsockopen,stream_socket_client,getmxrr
@@ -69,7 +62,7 @@ git clone https://github.com/glic3rinu/spam-gear.git
 
 4. Don't use your primary mail server for sending webusers mail
 
-5. Use [fail2ban](http://www.fail2ban.org), and ban failed attemps at login.php
+5. Use [fail2ban](http://www.fail2ban.org), and ban failed attemps at login.php endpoints
     ```
     # /etc/fail2ban/filter.d/php-login.conf
     [Definition]
@@ -87,6 +80,13 @@ git clone https://github.com/glic3rinu/spam-gear.git
     ```
 
 6. Use Apache [modsecurity](https://www.modsecurity.org)
+
+7. Inspect uploaded files with ModSecurity and spam-gear
+    ```
+    # modsecurity.conf
+    SecRule FILES_TMPNAMES "@inspectFile /usr/local/share/spam-gear/utils/runav.sh" \
+        "id:159,phase:2,t:none,log,deny,msg:'Malicious Code Detected, access denied'"
+    ```
 
 7. Run CGIs with Apache [SuEXEC](https://httpd.apache.org/docs/current/suexec.html)
 
@@ -115,6 +115,7 @@ git clone https://github.com/glic3rinu/spam-gear.git
     */20 * * * *   roundcube-spam-check -p 1hour -m 60 -d 10,10 -l /home/pangea/logs/roundcube/sendmail | emergency-mail 3000
     */20 * * * *   imp-spam-check -p 1hour -m 60 -d 10,10 -l /home/pangea/logs/horde/horde3.log | emergency-mail 3000
     ```
+
 
 
 ### Mail
