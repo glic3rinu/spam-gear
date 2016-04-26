@@ -107,8 +107,8 @@ git clone https://github.com/glic3rinu/spam-gear.git
 11. Periodically update php-shell-detector and spam-gear fingerprints.txt and backdoors.re
     ```
     0    0 * * *   php-shell-detector --update
-    0    0 * * *   wget https://github.com/glic3rinu/spam-gear/raw/master/scans/fingerprints.txt -O /usr/local/share/spam-gear/scans/fingerprints.txt
-    0    0 * * *   wget https://github.com/glic3rinu/spam-gear/raw/master/scans/backdoors.re -O /usr/local/share/spam-gear/scans/backdoors.re
+    0    0 * * *   wget -q https://github.com/glic3rinu/spam-gear/raw/master/scans/fingerprints.txt -O /usr/local/share/spam-gear/scans/fingerprints.txt
+    0    0 * * *   wget -q https://github.com/glic3rinu/spam-gear/raw/master/scans/backdoors.re -O /usr/local/share/spam-gear/scans/backdoors.re
     ```
 
 10. Periodically monitor logfiles for users that send large ammount of mail, using local SMTP, roundcube or Horde IMP. Tunne thresholds for automatically disable users based on the number of IPs, networks and emails they send.
