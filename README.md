@@ -137,11 +137,11 @@ git clone https://github.com/glic3rinu/spam-gear.git
 
 13. Develop custom MailScanner rules for phishing attacks
 14. Use [Postfix check_recipient_access](http://www.postfix.org/postconf.5.html#check_recipient_access) to block known phishing return addresses
-   ```
-   # recipient_access
-   helpdeskunit590@mail2world.com REJECT Don't reply to spammers
-   carecenter123@gmail.com REJECT Don't reply to spammers
-   ```
+    ```
+    # recipient_access
+    helpdeskunit590@mail2world.com REJECT Don't reply to spammers
+    carecenter123@gmail.com REJECT Don't reply to spammers
+    ```
 
 
 <!--TODO full-scan construct full paths from clamd-client -->
